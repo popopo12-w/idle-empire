@@ -138,40 +138,6 @@
         .header-balance .icon {
             font-size: 14px;
         }
-        /* === ADSGRAM: стили для рекламных кнопок === */
-        .ad-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            padding: 0 20px;
-            flex-wrap: wrap;
-        }
-        .ad-btn {
-            flex: 1;
-            min-width: 130px;
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark));
-            color: #000;
-            transition: all var(--transition-fast);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .ad-btn:active {
-            transform: scale(0.96);
-        }
-        .ad-btn:disabled {
-            background: var(--bg-card-hover);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            pointer-events: none;
-        }
 
         .page {
             display: none;
@@ -1409,6 +1375,93 @@
         .tax-indicator.visible {
             display: inline;
         }
+
+        /* === AD SHOP: стили === */
+        .ad-shop-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px 0;
+        }
+        .ad-shop-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(33, 150, 243, 0.15));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            transition: all 0.2s;
+        }
+        .ad-shop-item:hover {
+            border-color: rgba(76, 175, 80, 0.5);
+            transform: translateY(-2px);
+        }
+        .ad-shop-item.cooldown {
+            opacity: 0.6;
+        }
+        .ad-shop-icon {
+            font-size: 36px;
+            min-width: 50px;
+            text-align: center;
+        }
+        .ad-shop-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .ad-shop-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .ad-shop-desc {
+            font-size: 13px;
+            color: #FFD700;
+            margin-bottom: 2px;
+        }
+        .ad-shop-hint {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .ad-shop-btn {
+            background: linear-gradient(135deg, #4CAF50, #2196F3);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 90px;
+            white-space: nowrap;
+            transition: transform 0.1s;
+        }
+        .ad-shop-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        .ad-shop-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        .ad-shop-btn:disabled {
+            background: rgba(128, 128, 128, 0.3);
+            cursor: not-allowed;
+        }
+        @media (max-width: 400px) {
+            .ad-shop-item {
+                padding: 10px;
+                gap: 8px;
+            }
+            .ad-shop-icon {
+                font-size: 28px;
+                min-width: 40px;
+            }
+            .ad-shop-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+                min-width: 75px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1420,17 +1473,26 @@
         <div class="modal" id="relicModal"><div class="modal-box"><div class="modal-icon" id="relicIcon">🎁</div><div class="modal-title" id="relicTitle">Находка!</div><div class="modal-desc" id="relicDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeRelicModalBtn">Отлично</button></div></div></div>
         <div class="modal" id="eventModal"><div class="modal-box"><div class="modal-icon" id="eventIcon">⚡</div><div class="modal-title" id="eventTitle">Событие!</div><div class="modal-desc" id="eventDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeEventModalBtn">Понятно</button></div></div></div>
         <header class="header"><div class="header-inner"><div class="header-title" id="headerTitle">Idle Empire <span class="cycle-badge" id="cycleBadge">Цикл 1</span></div><div class="header-balance"><span class="icon">🪙</span><span id="headerBalance">0</span><span class="tax-indicator" id="taxIndicator">💰налог</span></div></div></header>
-        <!-- === ADSGRAM: кнопки рекламы === -->
-        <div class="ad-buttons" id="adButtons">
-            <button class="ad-btn" id="rewardAdBtn" onclick="showRewardAd(1000)">🎬 +1000 монет</button>
-            <button class="ad-btn" id="offlineBoostBtn" onclick="showRewardAd(0, true)">💰 ×2 оффлайн-доход</button>
-        </div>
         <main class="page active" id="page-game"><div id="eventBanner"></div><div class="stats-grid"><div class="stat-card"><div class="label">За клик</div><div class="value blue" id="statClick">1</div></div><div class="stat-card"><div class="label">В секунду</div><div class="value gold" id="statPS">0</div></div></div><div class="balance-display"><div class="coin-icon">🪙</div><div class="amount" id="mainBalance">0</div><div class="per-sec" id="mainPerSec">+0 / сек</div></div><div class="click-area" id="clickArea"><div class="combo-badge" id="comboBadge"><span class="combo-text">Комбо</span><span class="combo-value" id="comboValue">0</span><span class="combo-mult" id="comboMult">×1.0</span></div><button class="click-btn" id="clickBtn"><span class="icon">💎</span><span class="label">TAP</span></button></div><div class="auto-info" id="autoInfo"><span>🤖</span><span>Автокликер: <strong id="autoClicks">0</strong>/сек</span></div><div class="currencies-row" id="currenciesRow"></div></main>
         <main class="page" id="page-shop"><div class="section-title">Магазин <span class="inflation-text" id="inflationDisplay"></span></div><div class="tabs" id="shopTabs"></div><div id="shopList"></div></main>
         <main class="page" id="page-progress"><div class="section-title">Прогресс</div><div class="tabs" id="progressTabs"></div><div id="progressContent"></div></main>
         <main class="page" id="page-tasks"><div class="section-title">Задания</div><div class="tabs" id="tasksTabs"></div><div id="tasksContent"></div></main>
         <main class="page" id="page-more"><div class="section-title">Ещё</div><div id="moreContent"></div></main>
-        <nav class="nav"><div class="nav-inner"><div class="nav-item active" data-page="game"><span class="icon">🎮</span><span class="label">Игра</span></div><div class="nav-item" data-page="shop"><span class="icon">🏪</span><span class="label">Магазин</span></div><div class="nav-item" data-page="progress"><span class="icon">📈</span><span class="label">Прогресс</span></div><div class="nav-item" data-page="tasks"><span class="icon">📋</span><span class="label">Задания</span></div><div class="nav-item" data-page="more"><span class="icon">⚙️</span><span class="label">Ещё</span></div></div></nav>
+        <!-- === AD SHOP: новая страница === -->
+        <main class="page" id="page-ads">
+            <div class="section-title">🎬 Магазин рекламы</div>
+            <div class="section-subtitle">Смотри рекламу — получай бонусы!</div>
+            <div class="ad-shop-container" id="adShopContainer"></div>
+        </main>
+        <nav class="nav"><div class="nav-inner">
+            <div class="nav-item active" data-page="game"><span class="icon">🎮</span><span class="label">Игра</span></div>
+            <div class="nav-item" data-page="shop"><span class="icon">🏪</span><span class="label">Магазин</span></div>
+            <div class="nav-item" data-page="progress"><span class="icon">📈</span><span class="label">Прогресс</span></div>
+            <div class="nav-item" data-page="tasks"><span class="icon">📋</span><span class="label">Задания</span></div>
+            <div class="nav-item" data-page="more"><span class="icon">⚙️</span><span class="label">Ещё</span></div>
+            <!-- === AD SHOP: новая вкладка === -->
+            <div class="nav-item" data-page="ads"><span class="icon">🎬</span><span class="label">Реклама</span></div>
+        </div></nav>
     </div>
     <script>
         // Telegram Mini App initialization
@@ -2062,6 +2124,16 @@
         };
         let G = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
+        // === AD SHOP: инициализация новых полей после загрузки ===
+        function ensureAdState() {
+            G.boostMultiplier = G.boostMultiplier || 1;
+            G.boostEndTime = G.boostEndTime || 0;
+            G.clickBoostMultiplier = G.clickBoostMultiplier || 1;
+            G.clickBoostEndTime = G.clickBoostEndTime || 0;
+            G.adCooldowns = G.adCooldowns || {};
+        }
+        ensureAdState();
+
         function save() { G.lastSave = Date.now();
             G.version = SAVE_VER; try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch (e) { try { const s =
                         JSON.stringify(G); if (s.length > 4e6) { G.tournamentPlayers = [];
@@ -2078,7 +2150,10 @@
                         .rebirthCounts || typeof G.rebirthCounts !== 'object') { G.rebirthCounts = { ...DEFAULT_STATE
                             .rebirthCounts }; } if (G.inflationFactor === undefined) G.inflationFactor = 1; if (G
                         .lastInflationTick === undefined) G.lastInflationTick = Date.now(); if (G.lastTaxTick ===
-                    undefined) G.lastTaxTick = Date.now(); } catch (e) {} }
+                    undefined) G.lastTaxTick = Date.now();
+                // === AD SHOP: восстановление бустеров из сохранения ===
+                ensureAdState();
+            } catch (e) {} }
 
         function migrateSave(p) { if (!p.version || p.version === '1.0' || p.version === '2.0') { delete p.themesOwned;
                 delete p.activeTheme; }
@@ -2237,10 +2312,19 @@
             let pow = base * m.click * m.all * getComboMult(); if (G.quantLv[1]) pow *= 2; return Math.min(Math.floor(
                 pow), Number.MAX_SAFE_INTEGER); }
 
+        // === AD SHOP: интеграция бустера пассивного дохода ===
         function getPassivePS() { const m = getMultipliers(); let base = 0; for (let i = 0; i < UPS.length; i++) base +=
                 UPS[i].ps * G.psLv[i]; for (let i = 0; i < UTE.length; i++) base += UTE[i].ps * G.techLv[i]; for (let i =
-                    0; i < UCO.length; i++) base += UCO[i].ps * G.cosmosLv[i]; return Math.min(Math.floor(base * m
-                .passive * m.all), Number.MAX_SAFE_INTEGER); }
+                    0; i < UCO.length; i++) base += UCO[i].ps * G.cosmosLv[i]; let result = Math.min(Math.floor(base * m
+                .passive * m.all), Number.MAX_SAFE_INTEGER);
+            // === AD SHOP: применение бустера пассивного дохода ===
+            if (G.boostMultiplier && G.boostEndTime && Date.now() < G.boostEndTime) {
+                result *= G.boostMultiplier;
+            } else {
+                G.boostMultiplier = 1;
+                G.boostEndTime = 0;
+            }
+            return result; }
 
         function getAutoClicks() { const m = getMultipliers(); return Math.max(0, Math.floor(m.auto)); }
 
@@ -2274,7 +2358,7 @@
         let currentPage = 'game';
         let inflationAccum = 0;
 
-        // === ADSGRAM FIX 2026: Инициализация рекламы ===
+        // === ADSGRAM: Инициализация рекламы ===
         let rewardAd = null;
         let interstitialAd = null;
 
@@ -2304,7 +2388,7 @@
             }
         }
 
-        // === ADSGRAM FIX 2026: Показ рекламы за награду ===
+        // === ADSGRAM: Показ рекламы за награду ===
         function showRewardAd(amount, isBoost = false) {
             // Проверка: инициализирован ли SDK
             if (!rewardAd) {
@@ -2366,6 +2450,247 @@
             } catch (e) {}
         }
 
+        // === AD SHOP: функции бустеров и наград ===
+
+        // Helpers для кулдаунов
+        function isCooldownActive(key) {
+            return G.adCooldowns[key] && G.adCooldowns[key] > Date.now();
+        }
+
+        function setCooldown(key, duration) {
+            G.adCooldowns[key] = Date.now() + duration;
+        }
+
+        function getCooldownRemaining(key) {
+            if (!G.adCooldowns[key]) return 0;
+            const remaining = G.adCooldowns[key] - Date.now();
+            return remaining > 0 ? remaining : 0;
+        }
+
+        function formatCooldown(ms) {
+            const totalSeconds = Math.ceil(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // 1. Монеты ×50 от текущего баланса
+        function adRewardMultiplyCoins() {
+            if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
+            const currentCoins = G.coins;
+            const reward = Math.floor(currentCoins * 50);
+            const finalReward = Math.max(reward, 500);
+            rewardAd.show()
+                .then((result) => {
+                    if (result.done) {
+                        G.coins += finalReward;
+                        G.totalEarned += finalReward;
+                        G.dailyEarned += finalReward;
+                        updateUI();
+                        save();
+                        hapticImpact('medium');
+                        toast(`🎉 +${fmt(finalReward)} монет!`, 'success');
+                        buildAdShop();
+                    } else {
+                        toast('Реклама не досмотрена', 'error');
+                    }
+                })
+                .catch(() => toast('Реклама недоступна', 'error'));
+        }
+
+        // 2. Бустер пассивного дохода ×2 на 5 минут
+        function adBoostPassive2x() {
+            if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
+            if (isCooldownActive('boost2x')) { toast('Кулдаун активен', 'error'); return; }
+            rewardAd.show()
+                .then((result) => {
+                    if (result.done) {
+                        G.boostMultiplier = 2;
+                        G.boostEndTime = Date.now() + 5 * 60 * 1000;
+                        setCooldown('boost2x', 5 * 60 * 1000);
+                        updateUI();
+                        save();
+                        hapticImpact('medium');
+                        toast('⚡ ×2 доход на 5 минут!', 'success');
+                        buildAdShop();
+                    } else {
+                        toast('Реклама не досмотрена', 'error');
+                    }
+                })
+                .catch(() => toast('Реклама недоступна', 'error'));
+        }
+
+        // 3. Бустер ×3 на 3 минуты
+        function adBoostPassive3x() {
+            if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
+            if (isCooldownActive('boost3x')) { toast('Кулдаун активен', 'error'); return; }
+            rewardAd.show()
+                .then((result) => {
+                    if (result.done) {
+                        G.boostMultiplier = 3;
+                        G.boostEndTime = Date.now() + 3 * 60 * 1000;
+                        setCooldown('boost3x', 10 * 60 * 1000);
+                        updateUI();
+                        save();
+                        hapticImpact('medium');
+                        toast('🚀 ×3 доход на 3 минуты!', 'success');
+                        buildAdShop();
+                    } else {
+                        toast('Реклама не досмотрена', 'error');
+                    }
+                })
+                .catch(() => toast('Реклама недоступна', 'error'));
+        }
+
+        // 4. ×2 клик на 60 сек
+        function adBoostClick2x() {
+            if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
+            if (isCooldownActive('click2x')) { toast('Кулдаун активен', 'error'); return; }
+            rewardAd.show()
+                .then((result) => {
+                    if (result.done) {
+                        G.clickBoostMultiplier = 2;
+                        G.clickBoostEndTime = Date.now() + 60 * 1000;
+                        setCooldown('click2x', 5 * 60 * 1000);
+                        updateUI();
+                        save();
+                        hapticImpact('medium');
+                        toast('👆 ×2 клик на 60 сек!', 'success');
+                        buildAdShop();
+                    } else {
+                        toast('Реклама не досмотрена', 'error');
+                    }
+                })
+                .catch(() => toast('Реклама недоступна', 'error'));
+        }
+
+        // 5. Мгновенно +1 час оффлайн-дохода
+        function adInstantOfflineHour() {
+            if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
+            if (isCooldownActive('offlineHour')) { toast('Кулдаун активен', 'error'); return; }
+            const reward = Math.floor(getPassivePS() * 3600);
+            rewardAd.show()
+                .then((result) => {
+                    if (result.done) {
+                        G.coins += reward;
+                        G.totalEarned += reward;
+                        G.dailyEarned += reward;
+                        setCooldown('offlineHour', 15 * 60 * 1000);
+                        updateUI();
+                        save();
+                        hapticImpact('medium');
+                        toast(`💎 +${fmt(reward)} монет (1 час дохода)!`, 'success');
+                        buildAdShop();
+                    } else {
+                        toast('Реклама не досмотрена', 'error');
+                    }
+                })
+                .catch(() => toast('Реклама недоступна', 'error'));
+        }
+
+        // 6. Рандомный сундук
+        function adRandomChest() {
+            if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
+            const rewards = [500, 1000, 5000, 10000, 50000];
+            const weights = [40, 30, 20, 8, 2];
+            rewardAd.show()
+                .then((result) => {
+                    if (result.done) {
+                        const totalWeight = weights.reduce((a, b) => a + b, 0);
+                        let random = Math.random() * totalWeight;
+                        let selectedReward = rewards[0];
+                        for (let i = 0; i < rewards.length; i++) {
+                            random -= weights[i];
+                            if (random <= 0) {
+                                selectedReward = rewards[i];
+                                break;
+                            }
+                        }
+                        G.coins += selectedReward;
+                        G.totalEarned += selectedReward;
+                        G.dailyEarned += selectedReward;
+                        updateUI();
+                        save();
+                        hapticImpact('medium');
+                        toast(`🎁 Из сундука выпало ${fmt(selectedReward)} монет!`, 'success');
+                        buildAdShop();
+                    } else {
+                        toast('Реклама не досмотрена', 'error');
+                    }
+                })
+                .catch(() => toast('Реклама недоступна', 'error'));
+        }
+
+        // === AD SHOP: рендер магазина ===
+        function buildAdShop() {
+            const container = document.getElementById('adShopContainer');
+            if (!container) return;
+            const currentCoins = G.coins;
+            const multipliedReward = Math.max(Math.floor(currentCoins * 50), 500);
+            const offlineHourReward = Math.floor(getPassivePS() * 3600);
+            const items = [
+                {
+                    icon: '💰', title: 'Монеты ×50',
+                    description: `Получи ${fmt(multipliedReward)} монет!`,
+                    hint: 'Умножает твой текущий баланс на 50',
+                    cooldownKey: null, action: 'adRewardMultiplyCoins()'
+                },
+                {
+                    icon: '⚡', title: '×2 доход на 5 минут',
+                    description: 'Удваивает пассивный доход',
+                    hint: 'Кулдаун: 5 минут',
+                    cooldownKey: 'boost2x', action: 'adBoostPassive2x()'
+                },
+                {
+                    icon: '🚀', title: '×3 доход на 3 минуты',
+                    description: 'Утраивает пассивный доход',
+                    hint: 'Кулдаун: 10 минут',
+                    cooldownKey: 'boost3x', action: 'adBoostPassive3x()'
+                },
+                {
+                    icon: '👆', title: '×2 клик на 60 сек',
+                    description: 'Удваивает награду за клик',
+                    hint: 'Кулдаун: 5 минут',
+                    cooldownKey: 'click2x', action: 'adBoostClick2x()'
+                },
+                {
+                    icon: '💎', title: '+1 час оффлайн-дохода',
+                    description: `Получи ${fmt(offlineHourReward)} монет мгновенно`,
+                    hint: 'Кулдаун: 15 минут',
+                    cooldownKey: 'offlineHour', action: 'adInstantOfflineHour()'
+                },
+                {
+                    icon: '🎁', title: 'Рандомный сундук',
+                    description: 'От 500 до 50 000 монет',
+                    hint: 'Испытай удачу!',
+                    cooldownKey: null, action: 'adRandomChest()'
+                }
+            ];
+            container.innerHTML = items.map(item => {
+                const isCooldown = item.cooldownKey && isCooldownActive(item.cooldownKey);
+                const cooldownMs = item.cooldownKey ? getCooldownRemaining(item.cooldownKey) : 0;
+                return `
+                    <div class="ad-shop-item ${isCooldown ? 'cooldown' : ''}">
+                        <div class="ad-shop-icon">${item.icon}</div>
+                        <div class="ad-shop-info">
+                            <div class="ad-shop-title">${item.title}</div>
+                            <div class="ad-shop-desc">${item.description}</div>
+                            <div class="ad-shop-hint">${item.hint}</div>
+                        </div>
+                        <button class="ad-shop-btn" onclick="${item.action}" ${isCooldown ? 'disabled' : ''}>
+                            ${isCooldown ? `⏱️ ${formatCooldown(cooldownMs)}` : '🎬 Смотреть'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Автообновление магазина рекламы, если открыта вкладка
+        setInterval(() => {
+            if (currentPage === 'ads') buildAdShop();
+        }, 1000);
+
+        // === остальные функции игры (не тронуты) ===
         function buildCurrenciesRow() { let h = ''; for (const c of CURRENCIES) { if (c.id === 'coins') continue;
                 const v = G[c.id]; if (v > 0) h += '<div class="currency-item ' + c.color +
                     '"><span class="icon">' + c.icon + '</span><span>' + fmt(v) + '</span></div>'; } document
@@ -2910,6 +3235,13 @@
                 Math.random() < Math.max(m.critChance, 0.5); let power = getClickPower(); if (isCrit) { power = Math
                     .floor(power * m.critMult); if (m.doubleCrit > 0 && Math.random() < m.doubleCrit) power = Math
                     .floor(power * 2); }
+            // === AD SHOP: бустер клика ===
+            if (G.clickBoostMultiplier && G.clickBoostEndTime && Date.now() < G.clickBoostEndTime) {
+                power *= G.clickBoostMultiplier;
+            } else {
+                G.clickBoostMultiplier = 1;
+                G.clickBoostEndTime = 0;
+            }
             G.coins += power;
             G.totalEarned += power;
             G.dailyEarned += power;
@@ -3079,6 +3411,8 @@
             hapticSelect();
             updateBackButton(); if (name === 'shop') buildShop(); if (name === 'progress') buildProgress(); if (name ===
                 'tasks') buildTasksPage(); if (name === 'more') buildStats();
+            // === AD SHOP: сборка магазина рекламы ===
+            if (name === 'ads') buildAdShop();
             updateUI(); }
         let toastTimer;
 
@@ -3125,11 +3459,13 @@
             buildProgress();
             buildTasksPage();
             buildStats();
+            // === AD SHOP: инициализация магазина ===
+            buildAdShop();
             updateBackButton();
             G.lastInflationTick = G.lastInflationTick || Date.now();
             G.lastTaxTick = G.lastTaxTick || Date.now();
             if (tgUser && tgUser.first_name) updateHeaderUser();
-            initAdsGram(); // === ADSGRAM FIX 2026: вызов инициализации рекламы ===
+            initAdsGram();
         }
         init();
     </script>
