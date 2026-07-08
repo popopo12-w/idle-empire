@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
     <title>Idle Empire</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- === ADSGRAM: добавлен SDK === -->
+    <!-- === ADSGRAM: SDK добавлен === -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2274,71 +2274,97 @@
         let currentPage = 'game';
         let inflationAccum = 0;
 
-        // === ADSGRAM: Инициализация рекламы ===
+        // === ADSGRAM FIX 2026: Инициализация рекламы ===
         let rewardAd = null;
         let interstitialAd = null;
+
         function initAdsGram() {
-            if (!window.AdsGram || !tg) return;
+            // Ждём загрузку SDK (может грузиться с задержкой)
+            if (!window.Adsgram) {
+                console.warn('❌ AdsGram SDK не загружен. Ретрай через 1 сек...');
+                setTimeout(initAdsGram, 1000);
+                return;
+            }
+            
             try {
-                rewardAd = new AdsGram.RewardAd({ blockId: '37717' });
-                interstitialAd = new AdsGram.InterstitialAd({ blockId: 'int-37718' });
-                // Автоматический показ Interstitial каждые 5 минут (300000 мс)
+                rewardAd = window.Adsgram.init({ blockId: '37717' });
+                interstitialAd = window.Adsgram.init({ blockId: 'int-37718' });
+                console.log('✅ AdsGram успешно инициализирован (Reward + Interstitial)');
+                
+                // Автоматический показ Interstitial каждые 5 минут
                 setInterval(() => {
                     if (interstitialAd && !document.querySelector('.modal.show') && !isResetting) {
-                        interstitialAd.show().catch(() => {});
+                        interstitialAd.show()
+                            .then(() => console.log('📺 Interstitial показан'))
+                            .catch(err => console.log('⏭️ Interstitial пропущен:', err));
                     }
                 }, 300000);
             } catch (e) {
-                console.warn('AdsGram init error:', e);
+                console.warn('❌ AdsGram init error:', e);
             }
         }
 
+        // === ADSGRAM FIX 2026: Показ рекламы за награду ===
         function showRewardAd(amount, isBoost = false) {
+            // Проверка: инициализирован ли SDK
             if (!rewardAd) {
+                console.warn('❌ rewardAd не инициализирован');
                 toast('Реклама временно недоступна', 'error');
+                // Пробуем реинициализировать на всякий случай
+                if (window.Adsgram) initAdsGram();
                 return;
             }
+            
             try {
                 rewardAd.show()
-                    .then(() => {
-                        if (isBoost) {
-                            // Умножение оффлайн-дохода: просто выдаём текущий оффлайн-доход ещё раз
-                            const bonus = Math.floor(getPassivePS() * 3600 * 0.7 * 2); // примерно 2 часа усиленного дохода
-                            G.coins += bonus;
-                            toast(`Оффлайн-доход удвоен! +${fmt(bonus)} 🪙`, 'success');
+                    .then((result) => {
+                        // ✅ result.done === true - юзер досмотрел
+                        if (result.done) {
+                            console.log('✅ Reward ad watched:', result);
+                            
+                            if (isBoost) {
+                                // Умножение оффлайн-дохода: 2 часа усиленного дохода
+                                const bonus = Math.floor(getPassivePS() * 3600 * 0.7 * 2);
+                                G.coins += bonus;
+                                G.totalEarned += bonus;
+                                G.dailyEarned += bonus;
+                                toast(`🎉 +${bonus} монет (бустер)!`, 'success');
+                            } else {
+                                G.coins += amount;
+                                G.totalEarned += amount;
+                                G.dailyEarned += amount;
+                                toast(`🎉 +${amount} монет!`, 'success');
+                            }
+                            
+                            updateUI();
+                            save();
+                            try { hapticImpact('medium'); } catch(e) {}
                         } else {
-                            G.coins += amount;
-                            toast(`+${fmt(amount)} 🪙`, 'success');
+                            console.log('⚠️ Reward ad not completed:', result);
+                            toast('Реклама не досмотрена', 'error');
                         }
-                        G.totalEarned += amount;
-                        updateUI();
-                        save();
                     })
-                    .catch((err) => {
-                        console.warn('Reward ad error:', err);
-                        toast('Реклама не загрузилась', 'error');
+                    .catch((result) => {
+                        // ❌ Ошибка или юзер закрыл раньше
+                        console.log('❌ Reward ad error:', result);
+                        toast('Реклама временно недоступна, попробуй позже', 'error');
                     });
             } catch (e) {
-                toast('Ошибка рекламы', 'error');
+                console.warn('❌ Show ad error:', e);
+                toast('Реклама временно недоступна', 'error');
             }
         }
 
         function showInterstitialAd() {
             if (!interstitialAd) {
+                console.warn('❌ interstitialAd не инициализирован');
                 toast('Реклама временно недоступна', 'error');
                 return;
             }
             try {
-                interstitialAd.show().catch((err) => {
-                    console.warn('Interstitial ad error:', err);
-                });
+                interstitialAd.show().catch(err => console.log('Interstitial error:', err));
             } catch (e) {}
         }
-
-        // Инициализируем рекламу после загрузки страницы
-        window.addEventListener('load', () => {
-            if (tg) initAdsGram();
-        });
 
         function buildCurrenciesRow() { let h = ''; for (const c of CURRENCIES) { if (c.id === 'coins') continue;
                 const v = G[c.id]; if (v > 0) h += '<div class="currency-item ' + c.color +
@@ -3102,7 +3128,9 @@
             updateBackButton();
             G.lastInflationTick = G.lastInflationTick || Date.now();
             G.lastTaxTick = G.lastTaxTick || Date.now();
-            if (tgUser && tgUser.first_name) updateHeaderUser(); }
+            if (tgUser && tgUser.first_name) updateHeaderUser();
+            initAdsGram(); // === ADSGRAM FIX 2026: вызов инициализации рекламы ===
+        }
         init();
     </script>
 </body>
