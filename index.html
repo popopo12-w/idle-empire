@@ -1,0 +1,3002 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <title>Idle Empire</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: rgb(10, 10, 14);
+            --bg-primary: rgb(15, 15, 20);
+            --bg-card: rgb(25, 25, 35);
+            --bg-card-hover: rgb(35, 35, 48);
+            --bg-card-active: rgb(42, 42, 55);
+            --accent-blue: rgb(60, 130, 246);
+            --accent-blue-dark: rgb(40, 100, 200);
+            --accent-gold: rgb(234, 179, 8);
+            --accent-gold-dark: rgb(180, 140, 6);
+            --text-primary: rgba(245, 245, 250, 0.95);
+            --text-secondary: rgb(130, 130, 150);
+            --text-muted: rgb(70, 70, 90);
+            --success: rgb(52, 199, 89);
+            --error: rgb(255, 69, 58);
+            --purple: rgb(175, 82, 222);
+            --orange: rgb(255, 159, 10);
+            --cyan: rgb(90, 200, 250);
+            --pink: rgb(255, 45, 85);
+            --teal: rgb(48, 209, 88);
+            --indigo: rgb(94, 92, 230);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.25);
+            --shadow-glow: 0 0 40px rgba(60, 130, 246, 0.2);
+            --transition-fast: 100ms ease;
+            --transition-normal: 200ms ease;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --nav-height: 72px;
+            --header-height: 56px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+
+        html,
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-variant-numeric: tabular-nums;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        * {
+            scrollbar-width: none;
+        }
+
+        .app-container {
+            max-width: 420px;
+            margin: 0 auto;
+            height: 100%;
+            background: var(--bg-primary);
+            position: relative;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media(min-width:481px) {
+            .app-container {
+                max-width: 540px;
+                box-shadow: -1px 0 0 var(--bg-card), 1px 0 0 var(--bg-card);
+            }
+        }
+        @media(min-width:1025px) {
+            .app-container {
+                max-width: 420px;
+                box-shadow: var(--shadow-lg), -20px 0 60px rgba(0, 0, 0, 0.3), 20px 0 60px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 14px 20px;
+            padding-top: calc(14px + env(safe-area-inset-top, 0px));
+        }
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+        .header-balance {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+        .header-balance .icon {
+            font-size: 14px;
+        }
+
+        .page {
+            display: none;
+            padding: 20px 20px calc(var(--nav-height) + var(--safe-bottom) + 20px);
+            min-height: calc(100vh - var(--header-height));
+            min-height: calc(100dvh - var(--header-height));
+            animation: pageIn var(--transition-normal) ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes pageIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+        }
+        .section-subtitle {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 24px 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .stat-card .label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .stat-card .value.blue {
+            color: var(--accent-blue);
+        }
+        .stat-card .value.gold {
+            color: var(--accent-gold);
+        }
+
+        .balance-display {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .balance-display .coin-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .balance-display .amount {
+            font-size: 40px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .balance-display .per-sec {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .click-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin: 20px 0 32px;
+        }
+        .combo-badge {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            margin-bottom: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .combo-badge.visible {
+            display: flex;
+        }
+        .combo-badge .combo-text {
+            color: var(--text-secondary);
+        }
+        .combo-badge .combo-value {
+            color: var(--cyan);
+            font-weight: 700;
+        }
+        .combo-badge .combo-mult {
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .combo-badge .combo-mult.level-1 {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--success);
+        }
+        .combo-badge .combo-mult.level-2 {
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--accent-gold);
+        }
+        .combo-badge .combo-mult.level-3 {
+            background: rgba(255, 159, 10, 0.15);
+            color: var(--orange);
+        }
+        .combo-badge .combo-mult.level-4 {
+            background: rgba(255, 69, 58, 0.15);
+            color: var(--error);
+            animation: comboPulse .5s infinite;
+        }
+        @keyframes comboPulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .6;
+            }
+        }
+
+        .click-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 2px solid rgba(60, 130, 246, 0.4);
+            cursor: pointer;
+            background: linear-gradient(145deg, var(--accent-blue-dark), var(--accent-blue));
+            box-shadow: var(--shadow-glow), var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+        .click-btn:active {
+            transform: scale(0.9);
+            box-shadow: 0 0 20px rgba(60, 130, 246, 0.15), var(--shadow-sm);
+        }
+        .click-btn .icon {
+            font-size: 52px;
+            pointer-events: none;
+        }
+        .click-btn .label {
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            pointer-events: none;
+        }
+        @media(min-width:481px) {
+            .click-btn {
+                width: 220px;
+                height: 220px;
+            }
+            .click-btn .icon {
+                font-size: 64px;
+            }
+        }
+
+        .float-text {
+            position: absolute;
+            pointer-events: none;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            text-shadow: 0 2px 8px rgba(234, 179, 8, 0.4);
+            animation: floatUp 800ms ease-out forwards;
+            z-index: 50;
+        }
+        .float-text.crit {
+            font-size: 32px;
+            color: #FFD60A;
+            text-shadow: 0 0 20px rgba(255, 214, 10, 0.6);
+        }
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(1.1);
+            }
+        }
+
+        .crit-text {
+            position: fixed;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: 900;
+            color: #FFD60A;
+            text-shadow: 0 0 30px rgba(255, 214, 10, 0.8);
+            animation: critAnim 500ms ease-out forwards;
+            z-index: 200;
+            pointer-events: none;
+        }
+        @keyframes critAnim {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .currencies-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .currency-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .currency-item .icon {
+            font-size: 16px;
+        }
+        .currency-item.purple {
+            color: var(--purple);
+        }
+        .currency-item.orange {
+            color: var(--orange);
+        }
+        .currency-item.cyan {
+            color: var(--cyan);
+        }
+        .currency-item.pink {
+            color: var(--pink);
+        }
+        .currency-item.teal {
+            color: var(--teal);
+        }
+        .currency-item.indigo {
+            color: var(--indigo);
+        }
+        .currency-item.gold {
+            color: var(--accent-gold);
+        }
+
+        .auto-info {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--cyan);
+            border: 1px solid rgba(90, 200, 250, 0.2);
+        }
+        .auto-info.visible {
+            display: flex;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .tab {
+            flex-shrink: 0;
+            padding: 10px 18px;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+        .tab:active {
+            transform: scale(0.96);
+        }
+        .tab.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .upgrade-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background var(--transition-normal), transform var(--transition-fast);
+        }
+        .upgrade-card:active {
+            background: var(--bg-card-hover);
+            transform: scale(0.98);
+        }
+        .upgrade-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .upgrade-icon.gold {
+            background: rgba(234, 179, 8, 0.12);
+        }
+        .upgrade-icon.blue {
+            background: rgba(60, 130, 246, 0.12);
+        }
+        .upgrade-icon.cyan {
+            background: rgba(90, 200, 250, 0.12);
+        }
+        .upgrade-icon.pink {
+            background: rgba(255, 45, 85, 0.12);
+        }
+        .upgrade-icon.purple {
+            background: rgba(175, 82, 222, 0.12);
+        }
+        .upgrade-icon.orange {
+            background: rgba(255, 159, 10, 0.12);
+        }
+        .upgrade-icon.teal {
+            background: rgba(48, 209, 88, 0.12);
+        }
+        .upgrade-icon.indigo {
+            background: rgba(94, 92, 230, 0.12);
+        }
+        .upgrade-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .upgrade-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+        .upgrade-desc {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .upgrade-level {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .upgrade-btn {
+            flex-shrink: 0;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all var(--transition-fast);
+        }
+        .upgrade-btn:active {
+            transform: scale(0.95);
+        }
+        .upgrade-btn.gold {
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark));
+            color: #000;
+        }
+        .upgrade-btn.blue {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
+            color: white;
+        }
+        .upgrade-btn.purple {
+            background: linear-gradient(135deg, var(--purple), rgb(140, 60, 190));
+            color: white;
+        }
+        .upgrade-btn.orange {
+            background: linear-gradient(135deg, var(--orange), rgb(220, 130, 0));
+            color: #000;
+        }
+        .upgrade-btn.cyan {
+            background: linear-gradient(135deg, var(--cyan), rgb(60, 170, 220));
+            color: #000;
+        }
+        .upgrade-btn.disabled {
+            background: var(--bg-card-hover) !important;
+            color: var(--text-muted) !important;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .inflation-text {
+            font-size: 10px;
+            color: var(--error);
+            font-weight: 500;
+            margin-left: 6px;
+        }
+
+        .rebirth-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rebirth-card .title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .rebirth-card .desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .rebirth-card .gain {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .rebirth-card .req {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        .rebirth-card .count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .rebirth-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 40px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            color: white;
+            transition: all var(--transition-fast);
+        }
+        .rebirth-btn:active {
+            transform: scale(0.95);
+        }
+        .rebirth-btn.disabled {
+            background: var(--bg-card-hover) !important;
+            color: var(--text-muted);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .reset-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 300ms ease;
+        }
+        .reset-overlay.show {
+            display: flex;
+        }
+        .reset-overlay.visible {
+            opacity: 1;
+        }
+        .reset-overlay .reset-text {
+            font-size: 36px;
+            font-weight: 900;
+            text-shadow: 0 0 40px currentColor;
+            margin-bottom: 16px;
+        }
+        .reset-overlay .reset-gain {
+            font-size: 24px;
+            font-weight: 700;
+            opacity: 0.8;
+        }
+
+        .pet-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all var(--transition-normal);
+        }
+        .pet-card.locked {
+            opacity: .5;
+        }
+        .pet-card.rare {
+            border-color: rgba(60, 130, 246, 0.3);
+        }
+        .pet-card.epic {
+            border-color: rgba(175, 82, 222, 0.3);
+        }
+        .pet-card.legendary {
+            border-color: rgba(234, 179, 8, 0.3);
+            background: linear-gradient(135deg, var(--bg-card), rgba(234, 179, 8, 0.05));
+        }
+        .pet-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            background: var(--bg-primary);
+            border: 2px solid var(--text-muted);
+            flex-shrink: 0;
+        }
+        .pet-card.rare .pet-icon {
+            border-color: var(--accent-blue);
+        }
+        .pet-card.epic .pet-icon {
+            border-color: var(--purple);
+        }
+        .pet-card.legendary .pet-icon {
+            border-color: var(--accent-gold);
+        }
+        .pet-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .pet-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        .pet-effect {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .pet-level {
+            font-size: 11px;
+            color: var(--cyan);
+            font-weight: 600;
+        }
+        .pet-evo {
+            font-size: 10px;
+            color: var(--purple);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .pet-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .relic-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .relic-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .relic-card.rare {
+            border-color: rgba(60, 130, 246, 0.3);
+        }
+        .relic-card.legendary {
+            border-color: rgba(234, 179, 8, 0.4);
+            background: linear-gradient(135deg, var(--bg-card), rgba(234, 179, 8, 0.08));
+        }
+        .relic-card.locked {
+            opacity: .4;
+        }
+        .relic-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .relic-name {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        .relic-effect {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .explore-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark));
+            color: #000;
+            margin-bottom: 12px;
+            transition: all var(--transition-fast);
+        }
+        .explore-btn:active {
+            transform: scale(0.98);
+        }
+        .explore-btn:disabled {
+            background: var(--bg-card-hover);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .explore-timer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .ach-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        @media(min-width:481px) {
+            .ach-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .ach-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .ach-card.locked {
+            opacity: .4;
+        }
+        .ach-card.done {
+            border-color: rgba(234, 179, 8, 0.4);
+        }
+        .ach-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .ach-card.locked .ach-icon {
+            filter: grayscale(1);
+        }
+        .ach-name {
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .task-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .task-icon {
+            font-size: 20px;
+        }
+        .task-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .task-reward {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+        .task-progress {
+            height: 6px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .task-progress-fill {
+            height: 100%;
+            background: var(--accent-blue);
+            border-radius: 3px;
+            transition: width var(--transition-normal);
+        }
+        .task-progress-fill.done {
+            background: var(--success);
+        }
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-status {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .task-btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .task-btn:active {
+            transform: scale(0.95);
+        }
+        .task-btn.claim {
+            background: var(--success);
+            color: white;
+        }
+        .task-btn.pending {
+            background: var(--bg-card-hover);
+            color: var(--text-muted);
+            cursor: default;
+            pointer-events: none;
+        }
+        .task-btn.claimed {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--success);
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .daily-header {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid rgba(60, 130, 246, 0.2);
+        }
+        .daily-header .title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .daily-header .timer {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .stats-list {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .stat-value {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .tournament-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .tournament-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .tournament-header .title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .tournament-header .timer {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .tournament-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .tournament-row:last-child {
+            border-bottom: none;
+        }
+        .tournament-row.me {
+            background: rgba(60, 130, 246, 0.1);
+            margin: 0 -16px;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+        }
+        .tournament-rank {
+            width: 28px;
+            font-size: 14px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .tournament-rank.gold {
+            color: var(--accent-gold);
+        }
+        .tournament-rank.silver {
+            color: #C0C0C0;
+        }
+        .tournament-rank.bronze {
+            color: #CD7F32;
+        }
+        .tournament-name {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .tournament-score {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .challenge-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .challenge-card.completed {
+            border-color: rgba(52, 199, 89, 0.3);
+        }
+        .challenge-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .challenge-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .challenge-reward {
+            font-size: 12px;
+            color: var(--accent-gold);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .challenge-btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
+            color: white;
+            transition: all var(--transition-fast);
+        }
+        .challenge-btn:active {
+            transform: scale(0.98);
+        }
+        .challenge-btn.completed {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--success);
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .golden-coin {
+            position: fixed;
+            width: 56px;
+            height: 56px;
+            font-size: 48px;
+            cursor: pointer;
+            z-index: 150;
+            animation: goldSpin 1s linear infinite, goldFloat 1.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(234, 179, 8, 0.6));
+        }
+        @keyframes goldSpin {
+            from {
+                transform: rotateY(0);
+            }
+            to {
+                transform: rotateY(360deg);
+            }
+        }
+        @keyframes goldFloat {
+            0%,
+            100% {
+                margin-top: 0;
+            }
+            50% {
+                margin-top: -10px;
+            }
+        }
+
+        .event-banner {
+            background: linear-gradient(135deg, var(--bg-card), rgba(234, 179, 8, 0.1));
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: eventGlow 2s ease infinite;
+        }
+        @keyframes eventGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(234, 179, 8, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(234, 179, 8, 0.4);
+            }
+        }
+        .event-banner .title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 4px;
+        }
+        .event-banner .desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .event-banner .timer {
+            font-size: 13px;
+            color: var(--orange);
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            animation: modalBgIn var(--transition-normal);
+        }
+        .modal.show {
+            display: flex;
+        }
+        @keyframes modalBgIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            animation: modalIn var(--transition-normal);
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .modal-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .modal-amount {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 24px;
+        }
+        .modal-amount.gold {
+            color: var(--accent-gold);
+        }
+        .modal-amount.purple {
+            color: var(--purple);
+        }
+        .modal-amount.cyan {
+            color: var(--cyan);
+        }
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .modal-btn:active {
+            transform: scale(0.96);
+        }
+        .modal-btn.cancel {
+            background: var(--bg-card-hover);
+            color: var(--text-secondary);
+        }
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--purple), rgb(140, 60, 190));
+            color: white;
+        }
+        .modal-btn.ok {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
+            color: white;
+        }
+
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 250;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-lg);
+            max-width: 90vw;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            border-color: rgba(52, 199, 89, 0.3);
+            color: var(--success);
+        }
+        .toast.error {
+            border-color: rgba(255, 69, 58, 0.3);
+            color: var(--error);
+        }
+
+        .nav {
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            background: rgba(15, 15, 20, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: var(--safe-bottom);
+            z-index: 100;
+        }
+        .nav-inner {
+            display: flex;
+            height: 56px;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition-normal);
+        }
+        .nav-item .icon {
+            font-size: 20px;
+            transition: transform var(--transition-normal);
+        }
+        .nav-item .label {
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: color var(--transition-normal);
+        }
+        .nav-item.active .icon {
+            transform: scale(1.1);
+        }
+        .nav-item.active .label {
+            color: var(--accent-blue);
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 24px;
+            height: 2px;
+            background: var(--accent-blue);
+            border-radius: 0 0 2px 2px;
+        }
+
+        .cycle-badge {
+            display: none;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark));
+            color: #000;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+        .cycle-badge.visible {
+            display: inline;
+        }
+
+        .tax-indicator {
+            display: none;
+            font-size: 10px;
+            color: var(--error);
+            margin-left: 8px;
+            font-weight: 500;
+        }
+        .tax-indicator.visible {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="toast" id="toast"></div>
+        <div class="modal" id="offlineModal"><div class="modal-box"><div class="modal-icon">💰</div><div class="modal-title">С возвращением!</div><div class="modal-desc">Пока тебя не было, твои улучшения работали</div><div class="modal-amount gold" id="offlineAmount">+0</div><div class="modal-btns"><button class="modal-btn ok" id="claimOfflineBtn">Забрать</button></div></div></div>
+        <div class="modal" id="rebirthModal"><div class="modal-box"><div class="modal-icon" id="rebModalIcon">💎</div><div class="modal-title" id="rebModalTitle">Перерождение</div><div class="modal-desc" id="rebModalDesc">Все предыдущие валюты будут сброшены!</div><div class="modal-amount purple" id="rebModalGain">+0</div><div class="modal-btns"><button class="modal-btn cancel" id="cancelResetBtn">Отмена</button><button class="modal-btn confirm" id="confirmResetBtn">Подтвердить</button></div></div></div>
+        <div class="reset-overlay" id="resetOverlay"><div class="reset-text" id="resetText">ПЕРЕРОЖДЕНИЕ</div><div class="reset-gain" id="resetGainText">+0 💎</div></div>
+        <div class="modal" id="relicModal"><div class="modal-box"><div class="modal-icon" id="relicIcon">🎁</div><div class="modal-title" id="relicTitle">Находка!</div><div class="modal-desc" id="relicDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeRelicModalBtn">Отлично</button></div></div></div>
+        <div class="modal" id="eventModal"><div class="modal-box"><div class="modal-icon" id="eventIcon">⚡</div><div class="modal-title" id="eventTitle">Событие!</div><div class="modal-desc" id="eventDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeEventModalBtn">Понятно</button></div></div></div>
+        <header class="header"><div class="header-inner"><div class="header-title" id="headerTitle">Idle Empire <span class="cycle-badge" id="cycleBadge">Цикл 1</span></div><div class="header-balance"><span class="icon">🪙</span><span id="headerBalance">0</span><span class="tax-indicator" id="taxIndicator">💰налог</span></div></div></header>
+        <main class="page active" id="page-game"><div id="eventBanner"></div><div class="stats-grid"><div class="stat-card"><div class="label">За клик</div><div class="value blue" id="statClick">1</div></div><div class="stat-card"><div class="label">В секунду</div><div class="value gold" id="statPS">0</div></div></div><div class="balance-display"><div class="coin-icon">🪙</div><div class="amount" id="mainBalance">0</div><div class="per-sec" id="mainPerSec">+0 / сек</div></div><div class="click-area" id="clickArea"><div class="combo-badge" id="comboBadge"><span class="combo-text">Комбо</span><span class="combo-value" id="comboValue">0</span><span class="combo-mult" id="comboMult">×1.0</span></div><button class="click-btn" id="clickBtn"><span class="icon">💎</span><span class="label">TAP</span></button></div><div class="auto-info" id="autoInfo"><span>🤖</span><span>Автокликер: <strong id="autoClicks">0</strong>/сек</span></div><div class="currencies-row" id="currenciesRow"></div></main>
+        <main class="page" id="page-shop"><div class="section-title">Магазин <span class="inflation-text" id="inflationDisplay"></span></div><div class="tabs" id="shopTabs"></div><div id="shopList"></div></main>
+        <main class="page" id="page-progress"><div class="section-title">Прогресс</div><div class="tabs" id="progressTabs"></div><div id="progressContent"></div></main>
+        <main class="page" id="page-tasks"><div class="section-title">Задания</div><div class="tabs" id="tasksTabs"></div><div id="tasksContent"></div></main>
+        <main class="page" id="page-more"><div class="section-title">Ещё</div><div id="moreContent"></div></main>
+        <nav class="nav"><div class="nav-inner"><div class="nav-item active" data-page="game"><span class="icon">🎮</span><span class="label">Игра</span></div><div class="nav-item" data-page="shop"><span class="icon">🏪</span><span class="label">Магазин</span></div><div class="nav-item" data-page="progress"><span class="icon">📈</span><span class="label">Прогресс</span></div><div class="nav-item" data-page="tasks"><span class="icon">📋</span><span class="label">Задания</span></div><div class="nav-item" data-page="more"><span class="icon">⚙️</span><span class="label">Ещё</span></div></div></nav>
+    </div>
+    <script>
+        // Telegram Mini App initialization
+        let tgUser = null;
+        let tgThemeParams = null;
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            try {
+                tg.expand();
+                tg.ready();
+                tg.setHeaderColor('#0f0f14');
+                tg.setBackgroundColor('#0f0f14');
+                tg.enableClosingConfirmation();
+                tg.MainButton.hide();
+                if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    tgUser = tg.initDataUnsafe.user;
+                }
+                if (tg.themeParams) {
+                    tgThemeParams = tg.themeParams;
+                    applyTelegramTheme(tgThemeParams);
+                }
+                if (tg.BackButton) {
+                    tg.BackButton.onClick(handleBackButton);
+                }
+            } catch (e) {
+                console.warn('Telegram WebApp initialization error:', e);
+            }
+        }
+
+        function applyTelegramTheme(params) {
+            try {
+                const root = document.documentElement;
+                if (params.bg_color) root.style.setProperty('--bg-primary', params.bg_color);
+                if (params.secondary_bg_color) root.style.setProperty('--bg-card', params.secondary_bg_color);
+                if (params.text_color) root.style.setProperty('--text-primary', params.text_color);
+                if (params.button_color) root.style.setProperty('--accent-blue', params.button_color);
+            } catch (e) {}
+        }
+
+        function handleBackButton() {
+            try {
+                if (document.querySelector('.modal.show')) {
+                    document.querySelector('.modal.show').classList.remove('show');
+                    updateBackButton();
+                } else if (currentPage !== 'game') {
+                    goPage('game');
+                } else {
+                    if (tg && tg.close) tg.close();
+                }
+            } catch (e) {}
+        }
+
+        function updateBackButton() {
+            if (!tg || !tg.BackButton) return;
+            try {
+                if (currentPage !== 'game' || document.querySelector('.modal.show')) {
+                    tg.BackButton.show();
+                } else {
+                    tg.BackButton.hide();
+                }
+            } catch (e) {}
+        }
+
+        // Global invite friend function
+        function inviteFriend() {
+            try {
+                const url = 'https://t.me/your_bot_username?start=idle_empire';
+                const text = 'Play Idle Empire with me!';
+                if (tg && tg.openTelegramLink) {
+                    tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' +
+                        encodeURIComponent(text));
+                } else if (navigator.share) {
+                    navigator.share({ title: 'Idle Empire', url: url }).catch(() => {});
+                } else {
+                    toast('Sharing not supported', 'error');
+                }
+            } catch (e) {}
+        }
+
+        // Haptic feedback helpers
+        function hapticImpact(style) {
+            try { if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred(style); } catch (e) {}
+        }
+
+        function hapticNotify(type) {
+            try { if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred(type); } catch (e) {}
+        }
+
+        function hapticSelect() {
+            try { if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged(); } catch (e) {}
+        }
+
+        // Global error handling
+        window.onerror = function(msg, url, line, col, error) {
+            try {
+                toast('Error: ' + msg, 'error');
+            } catch (e) {}
+            return true;
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            try {
+                toast('Promise error: ' + event.reason, 'error');
+            } catch (e) {}
+        });
+
+        // Show user name in header
+        function updateHeaderUser() {
+            const headerTitleEl = document.getElementById('headerTitle');
+            if (headerTitleEl && tgUser && tgUser.first_name) {
+                headerTitleEl.innerHTML = tgUser.first_name + ' <span class="cycle-badge" id="cycleBadge">Цикл 1</span>';
+            }
+        }
+        updateHeaderUser();
+
+        // ========== original game code (unchanged except haptic calls updated) ==========
+        const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td', 'Qad',
+            'Qid', 'Sxd', 'Spd', 'Od', 'Nd', 'Vg', 'Uvg', 'Dvg', 'Tvg', 'Qavg', 'Qivg', 'Sxvg', 'Spvg', 'Ovg', 'Nvg',
+            'Tg', 'Utg', 'Dtg', 'Ttg', 'Qatg', 'Qitg', 'Sxtg', 'Sptg', 'Otg', 'Ntg'
+        ];
+        for (let i = SUFFIXES.length; i < 1000; i++) SUFFIXES.push('e' + i * 3);
+
+        function fmt(n) { if (n === undefined || n === null) return '0'; if (typeof n !== 'number' || isNaN(n)) return '0'; if (!isFinite(
+                n)) return '∞'; if (n < 0) return '-' + fmt(-n); if (n < 10000) return Math.floor(n).toLocaleString(
+            'ru'); let i = 0; while (n >= 1000 && i < SUFFIXES.length - 1) { n /= 1000;
+                i++; } if (i >= SUFFIXES.length - 1 && n >= 1000) return n.toExponential(2); return (n >= 100 ? Math.floor(
+                n) : n >= 10 ? n.toFixed(1) : n.toFixed(2)) + SUFFIXES[i]; }
+
+        function safePow(base, exp) { if (exp === 0) return 1; if (exp < 0) return 1 / safePow(base, -exp); if (!isFinite(
+                base) || !isFinite(exp)) return Infinity; const result = Math.pow(base, exp); if (!isFinite(result)) { const
+                logResult = exp * Math.log10(base); if (logResult > 308) return Infinity; return Math.pow(10,
+            logResult); } return result; }
+        const CURRENCIES = [{ id: 'coins', icon: '🪙', color: 'gold' }, { id: 'crystals', icon: '💎', color: 'purple' },
+            { id: 'stars', icon: '⭐', color: 'orange' }, { id: 'energy', icon: '🌌', color: 'cyan' }, { id: 'quantum',
+                icon: '⚛️', color: 'teal' }, { id: 'dark', icon: '🔮', color: 'indigo' }, { id: 'fragments', icon: '🧩',
+                color: 'pink' }, { id: 'sparks', icon: '✨', color: 'gold' }, { id: 'dimCrystals', icon: '💠',
+                color: 'purple' }, { id: 'eternity', icon: '♾️', color: 'pink' }, { id: 'omega', icon: 'Ω',
+            color: 'teal' }, { id: 'absolute', icon: '∞', color: 'gold' }];
+        const REBIRTHS = [{ id: 'crystals', name: 'Перерождение', icon: '💎', desc: 'Кристалл = +2% доход.',
+                req: 'coins', baseReq: 5000000, scale: 2.2, currency: 'crystals', color: '#af52de' }, { id: 'stars',
+                name: 'Престиж', icon: '⭐', desc: 'Звезда = +10% доход.', req: 'crystals', baseReq: 150,
+                scale: 2.2, currency: 'stars', color: '#ff9f0a' }, { id: 'energy', name: 'Вознесение', icon: '🌌',
+                desc: 'Энергия = ×2 всё.', req: 'stars', baseReq: 60, scale: 2.2, currency: 'energy',
+                color: '#5ac8fa' }, { id: 'quantum', name: 'Квантовый скачок', icon: '⚛️', desc: 'Осколок = +50% всё.',
+                req: 'energy', baseReq: 56, scale: 2.5, currency: 'quantum', color: '#30d158' }, { id: 'dark',
+                name: 'Тёмный разлом', icon: '🔮', desc: 'Частица = ×2 всё.', req: 'quantum', baseReq: 34, scale: 2.5,
+                currency: 'dark', color: '#5e5ce6' }, { id: 'fragments', name: 'Коллапс', icon: '🧩',
+                desc: 'Фрагмент = +100% валют.', req: 'dark', baseReq: 23, scale: 2.5, currency: 'fragments',
+                color: '#ff2d55' }, { id: 'sparks', name: 'Ультра синг.', icon: '✨', desc: 'Искра = ×10 всё.',
+                req: 'fragments', baseReq: 11, scale: 2.5, currency: 'sparks', color: '#eab308' },
+            { id: 'dimCrystals', name: 'Разрыв изм.', icon: '💠', desc: 'Кр.изм. = ×25.', req: 'sparks', baseReq: 7,
+                scale: 2.5, currency: 'dimCrystals', color: '#af52de' }, { id: 'eternity', name: 'Вечность', icon: '♾️',
+                desc: 'Капля = ×100.', req: 'dimCrystals', baseReq: 5, scale: 2.5, currency: 'eternity',
+            color: '#ff2d55' }, { id: 'omega', name: 'Омега', icon: 'Ω', desc: 'Омега = ×1000.', req: 'eternity',
+                baseReq: 2, scale: 2.5, currency: 'omega', color: '#30d158' }, { id: 'absolute', name: 'Абсолют',
+                icon: '∞', desc: 'Абсолют = ×10000, +1 цикл.', req: 'omega', baseReq: 11, scale: 2.5, currency: 'absolute',
+                color: '#eab308' }];
+        const UPS = [
+            { name: 'Курсор', icon: '👆', base: 18, ps: 0.325 }, { name: 'Бабушка', icon: '👵', base: 176, ps: 1.95 },
+            { name: 'Ферма', icon: '🚜', base: 880, ps: 7.8 }, { name: 'Шахта', icon: '⛏️', base: 3520, ps: 26 },
+            { name: 'Завод', icon: '🏭', base: 14080, ps: 78 }, { name: 'Банк', icon: '🏦', base: 52800, ps: 260 },
+            { name: 'Храм', icon: '🏛️', base: 176000, ps: 780 }, { name: 'Башня', icon: '🗼', base: 704000, ps: 2600 },
+            { name: 'Космос', icon: '🚀', base: 3520000, ps: 7800 }, { name: 'Измерение', icon: '🌀', base: 17600000,
+                ps: 26000 }, { name: 'Майнинг', icon: '💻', base: 88000000, ps: 78000 }, { name: 'Кв.комп.', icon: '⚛️',
+                base: 528000000, ps: 260000 }, { name: 'ИИ', icon: '🤖', base: 3520000000, ps: 780000 },
+            { name: 'Нейросеть', icon: '🧠', base: 26400000000, ps: 2600000 }, { name: 'Процессор', icon: '⚡',
+                base: 176000000000, ps: 7800000 }, { name: 'Сервер', icon: '🖥️', base: 1408000000000, ps: 26000000 },
+            { name: 'Матрица', icon: '🟢', base: 12320000000000, ps: 78000000 }, { name: 'Симуляция', icon: '🌪️',
+                base: 105600000000000, ps: 260000000 }, { name: 'Генератор', icon: '💥', base: 880000000000000,
+                ps: 780000000 }, { name: 'Машина вр.', icon: '⏰', base: 8800000000000000, ps: 2600000000 }
+        ];
+        const UPC = [
+            { name: 'Стальной палец', icon: '🦾', base: 66, pc: 1.44 }, { name: 'Лазер', icon: '🔫', base: 660, pc: 7.2 },
+            { name: 'Плазма', icon: '🔥', base: 6600, pc: 36 }, { name: 'Термояд', icon: '💣', base: 66000, pc: 180 },
+            { name: 'Квант.тык', icon: '⚡', base: 660000, pc: 864 }, { name: 'Удар бога', icon: '👊', base: 6600000,
+                pc: 4320 }, { name: 'Разрыв', icon: '🌀', base: 66000000, pc: 21600 }, { name: 'Б.взрыв', icon: '🌌',
+                base: 660000000, pc: 108000 }, { name: 'Сингул.', icon: '♾️', base: 6600000000, pc: 540000 },
+            { name: 'Абсолют', icon: '⭐', base: 66000000000, pc: 2880000 }
+        ];
+        const UTE = [
+            { name: 'Нанороботы', icon: '⚙️', base: 3.315e15, ps: 5.75e9 }, { name: 'Генная инж.', icon: '🧬',
+                base: 3.315e16, ps: 2.3e10 }, { name: 'Телепорт', icon: '🌀', base: 3.315e17, ps: 8.625e10 },
+            { name: 'Телепатия', icon: '🧠', base: 3.315e18, ps: 2.875e11 }, { name: 'Левитация', icon: '☁️',
+                base: 3.315e19, ps: 1.15e12 }, { name: 'Антиграв', icon: '🪐', base: 3.315e20, ps: 4.6e12 },
+            { name: 'Варп', icon: '🚀', base: 3.315e21, ps: 1.725e13 }, { name: 'Дайсон', icon: '☀️', base: 3.315e22,
+                ps: 6.9e13 }, { name: 'Нейролинк', icon: '🔗', base: 3.315e23, ps: 2.875e14 }, { name: 'Кв.туннель',
+                icon: '🕳️', base: 3.315e24, ps: 1.15e15 }, { name: 'Акаши', icon: '📖', base: 3.315e25, ps: 4.6e15 },
+            { name: 'Матрица богов', icon: '🔲', base: 3.315e26, ps: 1.725e16 }, { name: 'Хроно', icon: '⏱️',
+                base: 3.315e27, ps: 6.9e16 }, { name: 'Реактор', icon: '♾️', base: 3.315e28, ps: 2.875e17 },
+            { name: 'Создатель', icon: '🌌', base: 3.315e29, ps: 1.15e18 }
+        ];
+        const UMA = [
+            { name: 'Свиток', icon: '📜', base: 1160, pc: 5.52 }, { name: 'Книга', icon: '📕', base: 11600, pc: 27.6 },
+            { name: 'Посох', icon: '🪄', base: 116000, pc: 138 }, { name: 'Крист.шар', icon: '🔮', base: 1160000, pc: 690 },
+            { name: 'Руна', icon: 'ᚱ', base: 11600000, pc: 3450 }, { name: 'Зелье', icon: '🧪', base: 116000000,
+            pc: 17250 }, { name: 'Амулет', icon: '📿', base: 1160000000, pc: 82800 }, { name: 'Артефакт', icon: '🏺',
+                base: 11600000000, pc: 414000 }, { name: 'Корона', icon: '👑', base: 116000000000, pc: 2070000 },
+            { name: 'Скипетр', icon: '🏆', base: 1160000000000, pc: 10350000 }, { name: 'Сфера', icon: '🌐',
+                base: 11600000000000, pc: 51750000 }, { name: 'Печать', icon: '🔏', base: 116000000000000, pc: 276000000 },
+            { name: 'Клинок', icon: '⚔️', base: 1160000000000000, pc: 1380000000 }, { name: 'Щит', icon: '🛡️',
+                base: 11600000000000000, pc: 6900000000 }, { name: 'Трон', icon: '🪑', base: 116000000000000000,
+                pc: 34500000000 }
+        ];
+        const UCO = [
+            { name: 'Зв.пыль', icon: '✨', base: 4.284e12, ps: 1.4375e9 }, { name: 'Пульсар', icon: '💫', base: 4.284e13,
+                ps: 5.75e9 }, { name: 'Квазар', icon: '🌟', base: 4.284e14, ps: 2.875e10 }, { name: 'Нейтр.зв.', icon: '⭐',
+                base: 4.284e15, ps: 1.4375e11 }, { name: 'Грав.волна', icon: '〰️', base: 4.284e16, ps: 6.9e11 },
+            { name: 'Межгал.', icon: '🌀', base: 4.284e17, ps: 2.875e12 }, { name: 'Скопление', icon: '🌌',
+                base: 4.284e18, ps: 1.4375e13 }, { name: 'Суперкл.', icon: '💠', base: 4.284e19, ps: 6.9e13 },
+            { name: 'Аттрактор', icon: '🌪️', base: 4.284e20, ps: 3.45e14 }, { name: 'Омега точка', icon: '⚪',
+                base: 4.284e21, ps: 2.875e15 }
+        ];
+        const RESET_SHOPS = {
+            crystals: { cur: 'crystals', icon: '💎', cls: 'purple', upgrades: [
+                    { name: 'Кристальный клик', icon: '👊', desc: '×1.5 клик/ур.', base: 2, step: 1.84,
+                    apply: 'clickMult', val: 1.5 },
+                    { name: 'Кристальный поток', icon: '🌊', desc: '×1.3 пассив/ур.', base: 3, step: 3.67,
+                        apply: 'passMult', val: 1.3 },
+                    { name: 'Автокликер', icon: '🤖', desc: '+1 авто/ур.', base: 5, step: 3.67, apply: 'auto',
+                    val: 1 },
+                    { name: 'Множ. кристаллов', icon: '💎', desc: '+20% кр./ур.', base: 8, step: 5.51,
+                        apply: 'crystalGain', val: 0.2 },
+                    { name: 'Крит шанс', icon: '⚡', desc: '+1% крит/ур.', base: 6, step: 5.51, apply: 'critChance',
+                        val: 0.01 },
+                    { name: 'Крит урон', icon: '💥', desc: '+1 крит урон/ур.', base: 6, step: 5.51, apply: 'critMult',
+                        val: 1 },
+                    { name: 'Скидка', icon: '🏷️', desc: '-3% цен/ур.', base: 10, step: 7.35, apply: 'discount',
+                        val: 0.03 },
+                    { name: 'Оффлайн', icon: '🌙', desc: '+30мин офлайн/ур.', base: 13, step: 9.18,
+                    apply: 'offline', val: 0.5 },
+                    { name: 'Золотой магнит', icon: '🧲', desc: '+15% золотая/ур.', base: 8, step: 5.51,
+                        apply: 'goldenBonus', val: 0.15 },
+                    { name: 'Комбо мастер', icon: '🔥', desc: '+10% комбо/ур.', base: 10, step: 7.35,
+                        apply: 'comboBonus', val: 0.1 },
+                    { name: 'Старт. капитал', icon: '📦', desc: '+10K старт/ур.', base: 17, step: 9.18,
+                        apply: 'startCoins', val: 10000 },
+                    { name: 'Ускоритель', icon: '🚀', desc: '+5% скор. пас./ур.', base: 24, step: 14.69,
+                        apply: 'passSpeed', val: 0.05 }
+                ] },
+            stars: { cur: 'stars', icon: '⭐', cls: 'orange', upgrades: [
+                    { name: 'Звёздный множ.', icon: '⭐', desc: '×2 всё/ур.', base: 3, step: 1.84,
+                    apply: 'allMult', val: 2 },
+                    { name: 'Мега авто', icon: '⚡', desc: '+10 авто/ур.', base: 4, step: 1.84, apply: 'auto',
+                    val: 10 },
+                    { name: 'Множ. перерожд.', icon: '💎', desc: '+50% кр./ур.', base: 7, step: 3.67,
+                        apply: 'crystalGain', val: 0.5 },
+                    { name: 'Звёздный клик', icon: '👊', desc: '×3 клик/ур.', base: 4, step: 3.67,
+                    apply: 'clickMult', val: 3 },
+                    { name: 'Звёздная скидка', icon: '🏷️', desc: '-5% кр.цен/ур.', base: 9, step: 5.51,
+                        apply: 'crysDiscount', val: 0.05 },
+                    { name: 'Двойной крит', icon: '⚡', desc: '+2% двойн.крит/ур.', base: 11, step: 5.51,
+                        apply: 'doubleCrit', val: 0.02 },
+                    { name: 'Звёздный поток', icon: '🌊', desc: '×2.5 пассив/ур.', base: 7, step: 3.67,
+                        apply: 'passMult', val: 2.5 },
+                    { name: 'Старт. кристаллы', icon: '🎁', desc: '+1💎 при переро./ур.', base: 18, step: 9.18,
+                        apply: 'startCrystals', val: 1 },
+                    { name: 'Звёздный магнит', icon: '🧲', desc: '×2 частота зол./ур.', base: 13, step: 7.35,
+                        apply: 'goldenFreq', val: 2 },
+                    { name: 'Беск. комбо', icon: '♾️', desc: '+0.5с комбо/ур.', base: 16, step: 7.35,
+                        apply: 'comboTime', val: 0.5 }
+                ] },
+            energy: { cur: 'energy', icon: '🌌', cls: 'cyan', upgrades: [
+                    { name: 'Вселенский множ.', icon: '🌌', desc: '×5 всё/ур.', base: 2, step: 1.22,
+                    apply: 'allMult', val: 5 },
+                    { name: 'Кв. автокликер', icon: '⚛️', desc: '+100 авто/ур.', base: 4, step: 1.22,
+                    apply: 'auto', val: 100 },
+                    { name: 'Множ. звёзд', icon: '⭐', desc: '+100% звёзд/ур.', base: 6, step: 2.45,
+                        apply: 'starGain', val: 1 },
+                    { name: 'Абсолют. клик', icon: '👊', desc: '×10 клик/ур.', base: 4, step: 2.45,
+                    apply: 'clickMult', val: 10 },
+                    { name: 'Времен. разрыв', icon: '⏰', desc: '×2 скор. пас./ур.', base: 8, step: 3.67,
+                        apply: 'passSpeed', val: 1 },
+                    { name: 'Абсолют. крит', icon: '⚡', desc: '+5% крит +5 урон/ур.', base: 10, step: 3.67,
+                        apply: 'critBoth', val: 1 },
+                    { name: 'Старт. престиж', icon: '🎁', desc: '+5💎 при прест./ур.', base: 16, step: 6.12,
+                        apply: 'startCrystals', val: 5 },
+                    { name: 'Вечный оффлайн', icon: '♾️', desc: 'Безлимит оффлайн', base: 15, step: 0,
+                        apply: 'unlimitedOffline', val: 1, max: 1 }
+                ] },
+            quantum: { cur: 'quantum', icon: '⚛️', cls: 'teal', upgrades: [
+                    { name: 'Кв. множитель', icon: '⚛️', desc: '×10 всё/ур.', base: 2, step: 1.22,
+                    apply: 'allMult', val: 10 },
+                    { name: 'Кв. авто', icon: '🤖', desc: '+1000 авто/ур.', base: 3, step: 1.22, apply: 'auto',
+                        val: 1000 },
+                    { name: 'Кв. кристаллы', icon: '💎', desc: '×3 кр./ур.', base: 5, step: 2.45,
+                        apply: 'crystalGainMult', val: 3 },
+                    { name: 'Кв. клик', icon: '👊', desc: '×25 клик/ур.', base: 3, step: 2.45, apply: 'clickMult',
+                        val: 25 },
+                    { name: 'Кв. пассив', icon: '💰', desc: '×25 пассив/ур.', base: 5, step: 2.45, apply: 'passMult',
+                        val: 25 },
+                    { name: 'Кв. скидка', icon: '🏷️', desc: '-10% всех цен/ур.', base: 6, step: 3.67,
+                        apply: 'discount', val: 0.1 }
+                ] },
+            dark: { cur: 'dark', icon: '🔮', cls: 'indigo', upgrades: [
+                    { name: 'Тёмный множ.', icon: '🔮', desc: '×50 всё/ур.', base: 2, step: 1.22,
+                    apply: 'allMult', val: 50 },
+                    { name: 'Тёмный авто', icon: '🤖', desc: '+10K авто/ур.', base: 3, step: 1.22, apply: 'auto',
+                        val: 10000 },
+                    { name: 'Тёмные звёзды', icon: '⭐', desc: '×5 звёзд/ур.', base: 5, step: 2.45,
+                        apply: 'starGainMult', val: 5 },
+                    { name: 'Тёмный клик', icon: '👊', desc: '×100 клик/ур.', base: 3, step: 2.45,
+                    apply: 'clickMult', val: 100 },
+                    { name: 'Тёмный пассив', icon: '💰', desc: '×100 пассив/ур.', base: 5, step: 2.45,
+                        apply: 'passMult', val: 100 },
+                    { name: 'Тёмный крит', icon: '💥', desc: '+10% крит +10 урон/ур.', base: 6, step: 3.67,
+                        apply: 'critBoth', val: 2 }
+                ] },
+            fragments: { cur: 'fragments', icon: '🧩', cls: 'pink', upgrades: [
+                    { name: 'Множ. реальности', icon: '🧩', desc: '×100 всё/ур.', base: 2, step: 1.22,
+                        apply: 'allMult', val: 100 },
+                    { name: 'Авто реальности', icon: '🤖', desc: '+100K авто/ур.', base: 3, step: 1.22,
+                    apply: 'auto', val: 1e5 },
+                    { name: 'Поток реальности', icon: '💰', desc: '×200 пассив/ур.', base: 3, step: 2.45,
+                        apply: 'passMult', val: 200 },
+                    { name: 'Удар реальности', icon: '👊', desc: '×200 клик/ур.', base: 3, step: 2.45,
+                        apply: 'clickMult', val: 200 },
+                    { name: 'Множ. валют', icon: '💎', desc: '×5 все валюты/ур.', base: 5, step: 2.45,
+                        apply: 'allCurrMult', val: 5 },
+                    { name: 'Крит реальности', icon: '💥', desc: '+20% крит +20 урон/ур.', base: 6, step: 3.67,
+                        apply: 'critBoth', val: 4 }
+                ] },
+            sparks: { cur: 'sparks', icon: '✨', cls: 'gold', upgrades: [
+                    { name: 'Множ. синг.', icon: '✨', desc: '×500 всё/ур.', base: 2, step: 1.22,
+                    apply: 'allMult', val: 500 },
+                    { name: 'Авто синг.', icon: '🤖', desc: '+1M авто/ур.', base: 3, step: 1.22, apply: 'auto',
+                        val: 1e6 },
+                    { name: 'Поток синг.', icon: '💰', desc: '×500 пассив/ур.', base: 3, step: 2.45,
+                        apply: 'passMult', val: 500 },
+                    { name: 'Удар синг.', icon: '👊', desc: '×500 клик/ур.', base: 3, step: 2.45,
+                    apply: 'clickMult', val: 500 },
+                    { name: 'Валюты синг.', icon: '💎', desc: '×10 все валюты/ур.', base: 5, step: 2.45,
+                        apply: 'allCurrMult', val: 10 },
+                    { name: 'Крит синг.', icon: '💥', desc: '+50 крит урон/ур.', base: 5, step: 2.45,
+                        apply: 'critMult', val: 50 }
+                ] },
+            dimCrystals: { cur: 'dimCrystals', icon: '💠', cls: 'purple', upgrades: [
+                    { name: 'Множ. измерений', icon: '💠', desc: '×1000 всё/ур.', base: 2, step: 1.22,
+                        apply: 'allMult', val: 1000 },
+                    { name: 'Авто измерений', icon: '🤖', desc: '+10M авто/ур.', base: 3, step: 1.22, apply: 'auto',
+                        val: 1e7 },
+                    { name: 'Поток измерений', icon: '💰', desc: '×1000 пассив/ур.', base: 3, step: 2.45,
+                        apply: 'passMult', val: 1000 },
+                    { name: 'Удар измерений', icon: '👊', desc: '×1000 клик/ур.', base: 3, step: 2.45,
+                        apply: 'clickMult', val: 1000 },
+                    { name: 'Валюты изм.', icon: '💎', desc: '×20 все валюты/ур.', base: 5, step: 2.45,
+                        apply: 'allCurrMult', val: 20 },
+                    { name: 'Крит измерений', icon: '💥', desc: '+100 крит урон/ур.', base: 5, step: 2.45,
+                        apply: 'critMult', val: 100 }
+                ] },
+            eternity: { cur: 'eternity', icon: '♾️', cls: 'pink', upgrades: [
+                    { name: 'Множ. вечности', icon: '♾️', desc: '×5000 всё/ур.', base: 2, step: 1.22,
+                        apply: 'allMult', val: 5000 },
+                    { name: 'Авто вечности', icon: '🤖', desc: '+100M авто/ур.', base: 3, step: 1.22, apply: 'auto',
+                        val: 1e8 },
+                    { name: 'Поток вечности', icon: '💰', desc: '×5000 пассив/ур.', base: 3, step: 2.45,
+                        apply: 'passMult', val: 5000 },
+                    { name: 'Удар вечности', icon: '👊', desc: '×5000 клик/ур.', base: 3, step: 2.45,
+                        apply: 'clickMult', val: 5000 },
+                    { name: 'Валюты вечности', icon: '💎', desc: '×50 все валюты/ур.', base: 5, step: 2.45,
+                        apply: 'allCurrMult', val: 50 },
+                    { name: 'Крит вечности', icon: '💥', desc: '+500 крит урон/ур.', base: 5, step: 2.45,
+                        apply: 'critMult', val: 500 }
+                ] },
+            omega: { cur: 'omega', icon: 'Ω', cls: 'teal', upgrades: [
+                    { name: 'Множ. омега', icon: 'Ω', desc: '×10000 всё/ур.', base: 2, step: 1.22,
+                    apply: 'allMult', val: 10000 },
+                    { name: 'Авто омега', icon: '🤖', desc: '+1B авто/ур.', base: 3, step: 1.22, apply: 'auto',
+                        val: 1e9 },
+                    { name: 'Поток омега', icon: '💰', desc: '×10000 пассив/ур.', base: 3, step: 2.45,
+                        apply: 'passMult', val: 10000 },
+                    { name: 'Удар омега', icon: '👊', desc: '×10000 клик/ур.', base: 3, step: 2.45,
+                    apply: 'clickMult', val: 10000 },
+                    { name: 'Валюты омега', icon: '💎', desc: '×100 все валюты/ур.', base: 5, step: 2.45,
+                        apply: 'allCurrMult', val: 100 },
+                    { name: 'Крит омега', icon: '💥', desc: '+1000 крит урон/ур.', base: 5, step: 2.45,
+                        apply: 'critMult', val: 1000 }
+                ] },
+            absolute: { cur: 'absolute', icon: '∞', cls: 'gold', upgrades: [
+                    { name: 'Множ. абсолюта', icon: '∞', desc: '×100000 всё/ур.', base: 2, step: 1.22,
+                        apply: 'allMult', val: 100000 },
+                    { name: 'Авто абсолюта', icon: '🤖', desc: '+10B авто/ур.', base: 3, step: 1.22, apply: 'auto',
+                        val: 1e10 },
+                    { name: 'Поток абсолюта', icon: '💰', desc: '×100000 пассив/ур.', base: 3, step: 2.45,
+                        apply: 'passMult', val: 100000 },
+                    { name: 'Удар абсолюта', icon: '👊', desc: '×100000 клик/ур.', base: 3, step: 2.45,
+                        apply: 'clickMult', val: 100000 },
+                    { name: 'Валюты абсолюта', icon: '💎', desc: '×500 все валюты/ур.', base: 5, step: 2.45,
+                        apply: 'allCurrMult', val: 500 },
+                    { name: 'Крит абсолюта', icon: '💥', desc: '+5000 крит урон/ур.', base: 5, step: 2.45,
+                        apply: 'critMult', val: 5000 }
+                ] }
+        };
+        const PETS = [
+            { name: 'Кот Монета', icon: '🐱', rarity: 'common', base: 966, effect: 'passive', val: 0.02415,
+                desc: '+2.415% пассив/ур.' },
+            { name: 'Собака Тапа', icon: '🐕', rarity: 'common', base: 1934, effect: 'click', val: 0.0161,
+                desc: '+1.61% клик/ур.' },
+            { name: 'Хомяк Клик', icon: '🐹', rarity: 'common', base: 3868, effect: 'auto', val: 0.4025,
+                desc: '+0.4025 авто/ур.' },
+            { name: 'Черепаха', icon: '🐢', rarity: 'common', base: 5801, effect: 'discount', val: 0.00805,
+                desc: '-0.805% цен/ур.' },
+            { name: 'Кролик', icon: '🐰', rarity: 'common', base: 7735, effect: 'critChance', val: 0.004025,
+                desc: '+0.4025% крит/ур.' },
+            { name: 'Дракон Игнис', icon: '🐉', rarity: 'rare', base: 1934, effect: 'click', val: 0.04025,
+                desc: '+4.025% клик/ур.', reqReb: 1 },
+            { name: 'Единорог', icon: '🦄', rarity: 'rare', base: 3868, effect: 'passive', val: 0.02415,
+                desc: '+2.415% пассив/ур.', reqReb: 1 },
+            { name: 'Феникс Эмбер', icon: '🔥', rarity: 'rare', base: 9669, effect: 'crystals', val: 0.04025,
+                desc: '+4.025% кристаллы/ур.', reqReb: 1 },
+            { name: 'Кит', icon: '🐋', rarity: 'rare', base: 19338, effect: 'whale', val: 0.69, desc: 'Бонус/90с',
+                reqReb: 1 },
+            { name: 'Робот Зерокс', icon: '🤖', rarity: 'rare', base: 15470, effect: 'auto', val: 0.805,
+                desc: '+0.805 авто/ур.', reqReb: 1 },
+            { name: 'Волк Луна', icon: '🐺', rarity: 'rare', base: 29006, effect: 'combo', val: 0.0805,
+                desc: '+8.05% комбо/ур.', reqReb: 1 },
+            { name: 'Лиса Хитра', icon: '🦊', rarity: 'rare', base: 38675, effect: 'discount', val: 0.012075,
+                desc: '-1.2075% цен/ур.', reqReb: 1 },
+            { name: 'Орёл Гром', icon: '🦅', rarity: 'rare', base: 48344, effect: 'critChance', val: 0.002415,
+                desc: '+0.2415% крит/ур.', reqReb: 1 },
+            { name: 'Тигр Шторм', icon: '🐯', rarity: 'rare', base: 58013, effect: 'critMult', val: 0.2415,
+                desc: '+0.2415 крит урон/ур.', reqReb: 1 },
+            { name: 'Лев', icon: '🦁', rarity: 'rare', base: 96688, effect: 'all', val: 0.04025,
+                desc: '+4.025% всё/ур.', reqReb: 1 },
+            { name: 'Акула', icon: '🦈', rarity: 'rare', base: 154700, effect: 'shark', val: 20.7,
+                desc: 'Бонус 20.7с/75с', reqReb: 1 },
+            { name: 'Змея', icon: '🐍', rarity: 'rare', base: 193375, effect: 'crysDiscount', val: 0.0161,
+                desc: '-1.61% кр.улучш./ур.', reqReb: 1 },
+            { name: 'Медведь', icon: '🐻', rarity: 'rare', base: 290063, effect: 'click', val: 0.0805,
+                desc: '+8.05% клик/ур.', reqReb: 1 },
+            { name: 'Сова', icon: '🦉', rarity: 'rare', base: 386750, effect: 'crystals', val: 0.0322,
+                desc: '+3.22% кристаллы/ур.', reqReb: 1 },
+            { name: 'Дракон Инферно', icon: '🔥', rarity: 'epic', base: 1933750, effect: 'all', val: 0.12075,
+                desc: '+12.075% всё/ур.', reqPres: 1 },
+            { name: 'Феникс Рассвет', icon: '🌅', rarity: 'epic', base: 3867500, effect: 'bonusCrystals', val: 0.805,
+                desc: '+0.805💎/сброс/ур.', reqPres: 1 },
+            { name: 'Левиафан', icon: '🐙', rarity: 'epic', base: 9668750, effect: 'leviathan', val: 6.9,
+                desc: 'Бонус 6.9м/180с', reqPres: 1 },
+            { name: 'Гидра', icon: '🐲', rarity: 'epic', base: 15470000, effect: 'comboMax', val: 0.805,
+                desc: '+0.805 макс комбо', reqPres: 1 },
+            { name: 'Цербер', icon: '🐕‍🦺', rarity: 'epic', base: 19337500, effect: 'discount', val: 0.0322,
+                desc: '-3.22% цен/ур.', reqPres: 1 },
+            { name: 'Бог Кронос', icon: '⏳', rarity: 'legendary', base: 193375000, effect: 'slowSpend', val: 0.161,
+                desc: '-16.1% расход/ур.', reqAsc: 1 },
+            { name: 'Фортуна', icon: '🍀', rarity: 'legendary', base: 386750000, effect: 'goldenChance', val: 0.0805,
+                desc: '+8.05% золотая/ур.', reqAsc: 1 },
+            { name: 'Архангел', icon: '👼', rarity: 'legendary', base: 966875000, effect: 'all', val: 0.4025,
+                desc: '+40.25% всё/ур.', reqAsc: 1 },
+            { name: 'Демон', icon: '😈', rarity: 'legendary', base: 1547000000, effect: 'critMult', val: 1.61,
+                desc: '+1.61 крит урон/ур.', reqAsc: 1 },
+            { name: 'Создатель', icon: '✨', rarity: 'legendary', base: 19337500000, effect: 'all', val: 0.805,
+                desc: '+80.5% всё/ур.', reqOmega: 1 }
+        ];
+        const RELICS = [
+            { name: 'Старая монета', icon: '🪙', rarity: 'common', effect: 'coins', val: 0.0069, desc: '+0.69% монеты' },
+            { name: 'Потрёп. перч.', icon: '🧤', rarity: 'common', effect: 'click', val: 0.0069, desc: '+0.69% клик' },
+            { name: 'Ржавая кирка', icon: '⛏️', rarity: 'common', effect: 'passive', val: 0.0069, desc: '+0.69% пассив' },
+            { name: 'Дерев. посох', icon: '🪵', rarity: 'common', effect: 'crystals', val: 0.00345, desc: '+0.345% кр.' },
+            { name: 'Бронз. кольцо', icon: '💍', rarity: 'common', effect: 'all', val: 0.00345, desc: '+0.345% всё' },
+            { name: 'Камень удачи', icon: '🪨', rarity: 'common', effect: 'critChance', val: 0.00345,
+            desc: '+0.345% крит' },
+            { name: 'Перо птицы', icon: '🪶', rarity: 'common', effect: 'auto', val: 0.069, desc: '+0.069 авто' },
+            { name: 'Старый компас', icon: '🧭', rarity: 'common', effect: 'goldenBonus', val: 0.0345,
+            desc: '+3.45% золотая' },
+            { name: 'Треснутый кр.', icon: '💎', rarity: 'common', effect: 'crystals', val: 0.0069, desc: '+0.69% кр.' },
+            { name: 'Пыльная книга', icon: '📖', rarity: 'common', effect: 'discount', val: 0.0069, desc: '-0.69% цены' },
+            { name: 'Сломан. часы', icon: '⏰', rarity: 'common', effect: 'offline', val: 0.345, desc: '+0.345ч офл.' },
+            { name: 'Медная мон.', icon: '🥉', rarity: 'common', effect: 'coins', val: 0.0138, desc: '+1.38% мон.' },
+            { name: 'Железн. слиток', icon: '🔩', rarity: 'common', effect: 'click', val: 0.0138, desc: '+1.38% клик' },
+            { name: 'Глин. фигурка', icon: '🗿', rarity: 'common', effect: 'passive', val: 0.0138, desc: '+1.38% пас.' },
+            { name: 'Медальон', icon: '🏅', rarity: 'common', effect: 'all', val: 0.0069, desc: '+0.69% всё' },
+            { name: 'Зол.мон.имп.', icon: '👑', rarity: 'rare', effect: 'all', val: 0.04025, desc: '+4.025% всё' },
+            { name: 'Крист.осколок', icon: '💠', rarity: 'rare', effect: 'crystals', val: 0.0805, desc: '+8.05% кр.' },
+            { name: 'Маг.свиток', icon: '📜', rarity: 'rare', effect: 'critChance', val: 0.04025, desc: '+4.025% крит' },
+            { name: 'Рубин', icon: '❤️', rarity: 'rare', effect: 'click', val: 0.0805, desc: '+8.05% клик' },
+            { name: 'Сапфир', icon: '💙', rarity: 'rare', effect: 'passive', val: 0.0805, desc: '+8.05% пас.' },
+            { name: 'Изумруд', icon: '💚', rarity: 'rare', effect: 'critMult', val: 0.805, desc: '+0.805 крит урон' },
+            { name: 'Аметист', icon: '💜', rarity: 'rare', effect: 'auto', val: 1.61, desc: '+1.61 авто' },
+            { name: 'Топаз', icon: '💛', rarity: 'rare', effect: 'offline', val: 1.61, desc: '+1.61ч офл.' },
+            { name: 'Алмаз', icon: '💎', rarity: 'rare', effect: 'coins', val: 0.12075, desc: '+12.075% мон.' },
+            { name: 'Жемчуг', icon: '⚪', rarity: 'rare', effect: 'goldenBonus', val: 0.20125, desc: '+20.125% золот.' },
+            { name: 'Сердце дракона', icon: '🐉', rarity: 'legendary', effect: 'allMult', val: 1.5, desc: '×1.5 всё' },
+            { name: 'Корона созд.', icon: '👑', rarity: 'legendary', effect: 'rebirthMult', val: 0.2,
+            desc: '+20% сброс' },
+            { name: 'Часы вечности', icon: '⏳', rarity: 'legendary', effect: 'offlineMax', val: 19.2, desc: '19.2ч офл.' },
+            { name: 'Перч.судьбы', icon: '🧤', rarity: 'legendary', effect: 'critGuarantee', val: 48,
+                desc: '50% крит/48с' },
+            { name: 'Ключ мультивс.', icon: '🔑', rarity: 'legendary', effect: 'allMult', val: 2, desc: '×2 всё' }
+        ];
+        const EVENTS = [
+            { name: 'Звёздный дождь', icon: '🌟', desc: 'Все доходы ×1.8', dur: 86, effect: 'allMult', val: 1.8 },
+            { name: 'Квантовый шторм', icon: '⚡', desc: 'Клик ×1.8', dur: 43, effect: 'clickMult', val: 1.8 },
+            { name: 'Золотая лихор.', icon: '🪙', desc: 'Золотые чаще', dur: 22, effect: 'goldenRush', val: 3 },
+            { name: 'Времен. разрыв', icon: '⏰', desc: 'Пассив ×3.6', dur: 22, effect: 'passiveMult', val: 3.6 },
+            { name: 'Крит буря', icon: '💥', desc: '60% крит', dur: 22, effect: 'critGuarantee', val: 0.6 },
+            { name: 'Автоматон', icon: '🤖', desc: 'Авто ×3.6', dur: 32, effect: 'autoMult', val: 3.6 },
+            { name: 'Скидочн. день', icon: '🏷️', desc: 'Цены -30%', dur: 65, effect: 'discount', val: 0.3 },
+            { name: 'Удача', icon: '🍀', desc: 'Золотая ×3', dur: 43, effect: 'goldenMult', val: 3 },
+            { name: 'Двойной клик', icon: '👆', desc: 'Клик ×1.8', dur: 32, effect: 'doubleClick', val: 1.8 },
+            { name: 'Абсолют.сила', icon: '👑', desc: 'Всё ×2.4', dur: 22, effect: 'allMult', val: 2.4 }
+        ];
+        const CHALLENGES = [
+            { name: 'Мастер комбо', desc: 'Комбо 1000', reward: '🎁 Перчатка мастера' },
+            { name: 'Аскетизм', desc: 'Перерожд. с <10 улучш.', reward: '🎁 Реликвия Аскета' },
+            { name: 'Молния', desc: 'Улучш. за 1с после сброса', reward: '🎁 Молния' },
+            { name: 'Марафонец', desc: '1ч без сброса', reward: '🎁 Медаль' },
+            { name: 'Кликомания', desc: '10K кликов/мин', reward: '🎁 Безумн.палец' },
+            { name: 'Золотой охотник', desc: '100 золотых', reward: '🎁 Магнит' },
+            { name: 'Крит мастер', desc: '1000 критов подряд', reward: '🎁 Крит корона' },
+            { name: 'Комбо бог', desc: 'Комбо 5000', reward: '🎁 Комбо трон' },
+            { name: 'Быстрый старт', desc: '1M за 5 мин', reward: '🎁 Ракета' },
+            { name: 'Идеальный сброс', desc: 'Сброс с точно 1M', reward: '🎁 Весы' }
+        ];
+        const DAILY_POOL = [
+            { desc: '975 кликов', goal: 975, type: 'clicks', reward: { coins: 3125 } },
+            { desc: '3900 кликов', goal: 3900, type: 'clicks', reward: { coins: 12500 } },
+            { desc: '19500 монет', goal: 19500, type: 'earn', reward: { coins: 625 } },
+            { desc: '1950000 монет', goal: 1950000, type: 'earn', reward: { coins: 31250 } },
+            { desc: '10 улучшений', goal: 10, type: 'buy', reward: { coins: 6250 } },
+            { desc: '39 улучшений', goal: 39, type: 'buy', reward: { crystals: 1 } },
+            { desc: 'Комбо 49', goal: 49, type: 'combo', reward: { coins: 3125 } },
+            { desc: 'Комбо 195', goal: 195, type: 'combo', reward: { crystals: 2 } },
+            { desc: '2 золотые', goal: 2, type: 'golden', reward: { coins: 6250 } },
+            { desc: '6 золотых', goal: 6, type: 'golden', reward: { crystals: 3 } }
+        ];
+        const ACHIEVEMENTS = [];
+        for (let i = 0; i < 10; i++) { const g = [1, 100, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10];
+            ACHIEVEMENTS.push({ cat: 'clicks', name: fmt(g[i]) + ' кликов', goal: g[i], icon: '👆' }); }
+        for (let i = 0; i < 10; i++) { const g = [1e3, 1e5, 1e7, 1e9, 1e11, 1e13, 1e15, 1e17, 1e19, 1e21];
+            ACHIEVEMENTS.push({ cat: 'wealth', name: fmt(g[i]) + ' монет', goal: g[i], icon: '💰' }); }
+        for (let i = 0; i < 10; i++) { const g = [1, 2, 3, 5, 10, 15, 25, 50, 75, 100];
+            ACHIEVEMENTS.push({ cat: 'rebirths', name: g[i] + ' перерожд.', goal: g[i], icon: '🔄' }); }
+        for (let i = 0; i < 10; i++) { const g = [1, 5, 10, 25, 50, 100, 200, 500, 1000, 5000];
+            ACHIEVEMENTS.push({ cat: 'upgrades', name: g[i] + ' улучш.', goal: g[i], icon: '🛒' }); }
+        for (let i = 0; i < 10; i++) ACHIEVEMENTS.push({ cat: 'special', name: 'Особое ' + (i + 1), goal: 1, icon: '⭐' });
+        for (let i = 0; i < 10; i++) ACHIEVEMENTS.push({ cat: 'pets', name: 'Питомцы ' + (i + 1), goal: i + 1,
+        icon: '🐾' });
+        for (let i = 0; i < 10; i++) ACHIEVEMENTS.push({ cat: 'relics', name: 'Реликвии ' + (i + 1), goal: i + 1,
+            icon: '🏺' });
+        for (let i = 0; i < 10; i++) ACHIEVEMENTS.push({ cat: 'resets', name: 'Сброс ' + (i + 1), goal: 1, icon: '🔄' });
+        for (let i = 0; i < 10; i++) ACHIEVEMENTS.push({ cat: 'speed', name: 'Скорость ' + (i + 1), goal: 1,
+        icon: '⚡' });
+        for (let i = 0; i < 10; i++) ACHIEVEMENTS.push({ cat: 'mastery', name: 'Мастерство ' + (i + 1), goal: 1,
+            icon: '🏆' });
+        const SAVE_VER = '3.2';
+        const SAVE_KEY = 'idleEmpire_v7';
+        const DEFAULT_STATE = {
+            version: SAVE_VER,
+            coins: 0,
+            crystals: 0,
+            stars: 0,
+            energy: 0,
+            quantum: 0,
+            dark: 0,
+            fragments: 0,
+            sparks: 0,
+            dimCrystals: 0,
+            eternity: 0,
+            omega: 0,
+            absolute: 0,
+            totalEarned: 0,
+            totalClicks: 0,
+            totalUpgrades: 0,
+            totalRebirths: 0,
+            totalPrestiges: 0,
+            totalAscensions: 0,
+            totalCrystals: 0,
+            totalStars: 0,
+            bestCrystalRun: 0,
+            goldenCaught: 0,
+            maxCombo: 0,
+            cycles: 0,
+            rebirthCounts: { crystals: 0, stars: 0, energy: 0, quantum: 0, dark: 0, fragments: 0, sparks: 0,
+                dimCrystals: 0, eternity: 0, omega: 0, absolute: 0 },
+            psLv: new Array(20).fill(0),
+            pcLv: new Array(10).fill(0),
+            techLv: new Array(15).fill(0),
+            magicLv: new Array(15).fill(0),
+            cosmosLv: new Array(10).fill(0),
+            crysLv: new Array(10).fill(0),
+            starLv: new Array(5).fill(0),
+            quantLv: new Array(10).fill(0),
+            darkLv: new Array(8).fill(0),
+            resetUpgLv_crystals: new Array(12).fill(0),
+            resetUpgLv_stars: new Array(10).fill(0),
+            resetUpgLv_energy: new Array(8).fill(0),
+            resetUpgLv_quantum: new Array(6).fill(0),
+            resetUpgLv_dark: new Array(6).fill(0),
+            resetUpgLv_fragments: new Array(6).fill(0),
+            resetUpgLv_sparks: new Array(6).fill(0),
+            resetUpgLv_dimCrystals: new Array(6).fill(0),
+            resetUpgLv_eternity: new Array(6).fill(0),
+            resetUpgLv_omega: new Array(6).fill(0),
+            resetUpgLv_absolute: new Array(6).fill(0),
+            petLv: new Array(30).fill(1),
+            petEvo: new Array(30).fill(0),
+            relicsFound: [],
+            achDone: new Array(100).fill(false),
+            challengesDone: new Array(10).fill(false),
+            dailyDate: '',
+            dailyTasks: [],
+            dailyProgress: [],
+            dailyClaimed: [],
+            tournamentDate: '',
+            tournamentScore: 0,
+            tournamentPlayers: [],
+            lastSave: Date.now(),
+            lastExplore: 0,
+            combo: 0,
+            lastClickTime: 0,
+            activeEvent: null,
+            eventEnd: 0,
+            dailyClicks: 0,
+            dailyEarned: 0,
+            dailyBought: 0,
+            dailySpent: 0,
+            dailyGolden: 0,
+            dailyRebirths: 0,
+            dailyPetUpg: 0,
+            dailyCrysBuys: 0,
+            dailyCrits: 0,
+            dailyPlayTime: 0,
+            dailyRelics: 0,
+            dailyEvents: 0,
+            sessionGolden: 0,
+            sessionStart: Date.now(),
+            critGuaranteeEnd: 0,
+            inflationFactor: 1,
+            lastInflationTick: Date.now(),
+            lastTaxTick: Date.now()
+        };
+        let G = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+        function save() { G.lastSave = Date.now();
+            G.version = SAVE_VER; try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch (e) { try { const s =
+                        JSON.stringify(G); if (s.length > 4e6) { G.tournamentPlayers = [];
+                        localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } } catch (e2) {} } }
+
+        function load() { try { const raw = localStorage.getItem(SAVE_KEY); if (!raw) return;
+                const p = JSON.parse(raw); if (p.version !== SAVE_VER) { migrateSave(p); } for (let k in DEFAULT_STATE) { if (
+                        p[k] !== undefined) { if (Array.isArray(DEFAULT_STATE[k])) { if (!Array.isArray(p[k])) { G[k] = [
+                                ...DEFAULT_STATE[k] ]; continue; }
+                            G[k] = [...DEFAULT_STATE[k]]; for (let i = 0; i < DEFAULT_STATE[k].length; i++) { G[k][i] = p[k][
+                                    i] !== undefined ? p[k][i] : DEFAULT_STATE[k][i]; } } else if (typeof DEFAULT_STATE[
+                                k] === 'object' && DEFAULT_STATE[k] !== null && !Array.isArray(DEFAULT_STATE[k])) { G[
+                                k] = { ...DEFAULT_STATE[k], ...(p[k] || {}) }; } else { G[k] = p[k]; } } } if (!G
+                        .rebirthCounts || typeof G.rebirthCounts !== 'object') { G.rebirthCounts = { ...DEFAULT_STATE
+                            .rebirthCounts }; } if (G.inflationFactor === undefined) G.inflationFactor = 1; if (G
+                        .lastInflationTick === undefined) G.lastInflationTick = Date.now(); if (G.lastTaxTick ===
+                    undefined) G.lastTaxTick = Date.now(); } catch (e) {} }
+
+        function migrateSave(p) { if (!p.version || p.version === '1.0' || p.version === '2.0') { delete p.themesOwned;
+                delete p.activeTheme; }
+            p.version = SAVE_VER; if (p.inflationFactor === undefined) p.inflationFactor = 1; }
+
+        function getPetIndex(name) { return PETS.findIndex(p => p.name === name); }
+
+        function getDateString() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d
+        .getDate(); }
+
+        function getRebirthThreshold(rebId) { const r = REBIRTHS.find(x => x.id === rebId); if (!r) return Infinity;
+            const count = G.rebirthCounts[rebId] || 0; return Math.ceil(r.baseReq * safePow(r.scale, count)); }
+
+        function getRebirthSourceValue(rebId) { const r = REBIRTHS.find(x => x.id === rebId); if (!r) return 0; return G[r
+                .req] || 0; }
+
+        function calcRebirthGain(rebId) { const r = REBIRTHS.find(x => x.id === rebId); if (!r) return 0;
+            const sourceVal = getRebirthSourceValue(rebId); const threshold = getRebirthThreshold(rebId); if (sourceVal <
+                threshold) return 0; const m = getMultipliers(); let divisor; if (rebId === 'crystals') divisor =
+                7400000; else if (rebId === 'stars') divisor = 1600; else if (rebId === 'energy') divisor = 417;
+            else if (rebId === 'quantum') divisor = 181; else if (rebId === 'dark') divisor = 90; else if (rebId ===
+                'fragments') divisor = 45; else if (rebId === 'sparks') divisor = 22; else if (rebId === 'dimCrystals')
+                divisor = 10; else if (rebId === 'eternity') divisor = 5; else if (rebId === 'omega') divisor = 2;
+            else divisor = 4.5; let base = Math.sqrt(Math.sqrt(sourceVal / divisor)); let bonus = m.rebirthMult; if (rebId ===
+                'crystals') { const phoenixIdx = getPetIndex('Феникс Эмбер'); if (phoenixIdx >= 0 && G.petLv[
+                    phoenixIdx] > 1) bonus *= 1 + PETS[phoenixIdx].val * G.petLv[phoenixIdx]; } return Math.max(1, Math
+                .floor(base * bonus)); }
+
+        function canDoReset(rebId) { const sourceVal = getRebirthSourceValue(rebId); const threshold =
+            getRebirthThreshold(rebId); return sourceVal >= threshold; }
+
+        function getResetDescription(rebId) { const rIdx = REBIRTHS.findIndex(x => x.id === rebId); const names = {
+                crystals: 'монеты и обычные улучшения', stars: 'монеты, улучшения и кристаллы',
+                energy: 'монеты, улучшения, кристаллы и звёзды' }; if (names[rebId]) return 'Будут сброшены: ' + names[
+                rebId] + '.'; let resetList = []; for (let i = 0; i < rIdx; i++) { const prev = REBIRTHS[i];
+                resetList.push(prev.name.toLowerCase()); } return 'Будут сброшены: монеты, улучшения, ' + resetList.join(
+                ', ') + '.'; }
+
+        function getResetUpgCost(shop, idx, lv) { const u = shop.upgrades[idx]; return u.base + u.step * lv; }
+
+        function calcResetBonuses() { const b = { click: 1, passive: 1, all: 1, auto: 0, critChance: 0, critMult: 0,
+                discount: 0, offline: 0, goldenBonus: 0, goldenFreq: 1, comboBonus: 1, crystalGain: 1, starGain: 1,
+                allCurrMult: 1, startCoins: 0, startCrystals: 0, passSpeed: 0, comboTime: 0, doubleCrit: 0,
+                crysDiscount: 0, unlimitedOffline: false, freeUpgradeChance: 0 }; for (const sid in RESET_SHOPS) { const
+                shop = RESET_SHOPS[sid]; const lvKey = 'resetUpgLv_' + sid; const lvs = G[lvKey]; if (!lvs)
+            continue; for (let i = 0; i < shop.upgrades.length; i++) { const u = shop.upgrades[i],
+                    lv = lvs[i] || 0; if (lv === 0) continue; switch (u.apply) { case 'clickMult':
+                        b.click *= safePow(u.val, lv); break; case 'passMult':
+                        b.passive *= safePow(u.val, lv); break; case 'allMult':
+                        b.all *= safePow(u.val, lv); break; case 'auto':
+                        b.auto += u.val * lv; break; case 'critChance':
+                        b.critChance += u.val * lv; break; case 'critMult':
+                        b.critMult += u.val * lv; break; case 'critBoth':
+                        b.critChance += 0.05 * u.val * lv;
+                        b.critMult += 5 * u.val * lv; break; case 'discount':
+                        b.discount += u.val * lv; break; case 'offline':
+                        b.offline += u.val * lv; break; case 'goldenBonus':
+                        b.goldenBonus += u.val * lv; break; case 'goldenFreq':
+                        b.goldenFreq *= safePow(u.val, lv); break; case 'comboBonus':
+                        b.comboBonus += u.val * lv; break; case 'crystalGain':
+                        b.crystalGain = 1 + u.val * lv; break; case 'crystalGainMult':
+                        b.crystalGain = safePow(u.val, lv); break; case 'starGain':
+                        b.starGain *= 1 + u.val * lv; break; case 'starGainMult':
+                        b.starGain = safePow(u.val, lv); break; case 'allCurrMult':
+                        b.allCurrMult *= safePow(u.val, lv); break; case 'startCoins':
+                        b.startCoins += u.val * lv; break; case 'startCrystals':
+                        b.startCrystals += u.val * lv; break; case 'passSpeed':
+                        b.passSpeed += u.val * lv; break; case 'comboTime':
+                        b.comboTime += u.val * lv; break; case 'doubleCrit':
+                        b.doubleCrit += u.val * lv; break; case 'crysDiscount':
+                        b.crysDiscount += u.val * lv; break; case 'unlimitedOffline':
+                        b.unlimitedOffline = true; break; case 'freeUpgrade':
+                        b.freeUpgradeChance += u.val * lv; break; } } } return b; }
+
+        function getMultipliers() { let m = { click: 1, passive: 1, all: 1, crystalGain: 1, discount: 0,
+                critChance: 0.04, critMult: 7, auto: 0, offlineHours: 6, goldenBonus: 1, goldenFreq: 1,
+            comboBonus: 1, petMult: 1, rebirthMult: 1, startCoins: 0, startCrystals: 0, passSpeed: 0, comboTime: 0,
+                doubleCrit: 0, slowSpend: 0, crysDiscount: 0, comboMax: 0, freeUpgradeChance: 0 };
+            m.all *= safePow(2, G.cycles); const rb = calcResetBonuses();
+            m.click *= rb.click;
+            m.passive *= rb.passive;
+            m.all *= rb.all;
+            m.auto += rb.auto;
+            m.critChance += rb.critChance;
+            m.critMult += rb.critMult;
+            m.discount += rb.discount;
+            m.offlineHours += rb.offline;
+            m.goldenBonus += rb.goldenBonus;
+            m.goldenFreq *= rb.goldenFreq;
+            m.comboBonus += rb.comboBonus;
+            m.crystalGain *= rb.crystalGain;
+            m.rebirthMult *= rb.allCurrMult;
+            m.startCoins = rb.startCoins;
+            m.startCrystals = rb.startCrystals;
+            m.passSpeed = rb.passSpeed;
+            m.comboTime = rb.comboTime;
+            m.doubleCrit = rb.doubleCrit;
+            m.slowSpend = rb.slowSpend || 0;
+            m.crysDiscount = rb.crysDiscount || 0;
+            m.freeUpgradeChance = rb.freeUpgradeChance || 0; if (rb.unlimitedOffline) m.offlineHours = 99999;
+            let cosmosBonus = 0; for (let i = 0; i < G.cosmosLv.length; i++)
+                if (G.cosmosLv[i] > 0) cosmosBonus += 0.01 * G.cosmosLv[i];
+            m.all *= 1 + cosmosBonus; for (let i = 0; i < PETS.length; i++) { const p = PETS[i],
+                    lv = G.petLv[i],
+                    evo = G.petEvo[i]; if (lv < 1) continue; const pmult = safePow(2, evo); switch (p.effect) {
+                    case 'click':
+                        m.click *= 1 + p.val * lv * pmult; break; case 'passive':
+                        m.passive *= 1 + p.val * lv * pmult; break; case 'auto':
+                        m.auto += p.val * lv * pmult; break; case 'discount':
+                        m.discount += p.val * lv * pmult; break; case 'critChance':
+                        m.critChance += p.val * lv * pmult; break; case 'critMult':
+                        m.critMult += p.val * lv * pmult; break; case 'crystals':
+                        m.crystalGain *= 1 + p.val * lv * pmult; break; case 'combo':
+                        m.comboBonus *= 1 + p.val * lv * pmult; break; case 'all':
+                        m.all *= 1 + p.val * lv * pmult; break; case 'goldenChance':
+                        m.goldenFreq *= 1 + p.val * lv * pmult; break; case 'crysDiscount':
+                        m.crysDiscount += p.val * lv * pmult; break; case 'slowSpend':
+                        m.slowSpend += p.val * lv * pmult; break; case 'comboMax':
+                        m.comboMax += p.val * lv * pmult; break; } } for (const r of G.relicsFound) { const rel =
+                    RELICS.find(x => x.name === r); if (!rel) continue; switch (rel.effect) { case 'coins':
+                        m.all *= 1 + rel.val; break; case 'click':
+                        m.click *= 1 + rel.val; break; case 'passive':
+                        m.passive *= 1 + rel.val; break; case 'crystals':
+                        m.crystalGain *= 1 + rel.val; break; case 'critChance':
+                        m.critChance += rel.val; break; case 'critMult':
+                        m.critMult += rel.val; break; case 'auto':
+                        m.auto += rel.val; break; case 'goldenBonus':
+                        m.goldenBonus += rel.val; break; case 'discount':
+                        m.discount += rel.val; break; case 'offline':
+                        m.offlineHours += rel.val; break; case 'all':
+                        m.all *= 1 + rel.val; break; case 'allMult':
+                        m.all *= rel.val; break; case 'rebirthMult':
+                        m.rebirthMult *= 1 + rel.val; break; case 'offlineMax':
+                        m.offlineHours = Math.max(m.offlineHours, rel.val); break; } } if (G.activeEvent && Date.now() <
+                    G.eventEnd) { const ev = EVENTS.find(e => e.name === G.activeEvent); if (ev) { if (ev.effect ===
+                        'allMult') m.all *= ev.val; if (ev.effect === 'clickMult' || ev.effect === 'doubleClick')
+                        m.click *= ev.val; if (ev.effect === 'passiveMult') m.passive *= ev.val; if (ev.effect ===
+                        'critGuarantee') m.critChance = Math.max(m.critChance, ev.val); if (ev.effect === 'autoMult')
+                        m.auto *= ev.val; if (ev.effect === 'discount') m.discount += ev.val; if (ev.effect ===
+                        'goldenMult') m.goldenBonus *= ev.val; if (ev.effect === 'goldenRush')
+                    m.goldenFreq *= ev.val; } }
+            m.discount = Math.min(m.discount, 0.99);
+            m.critChance = Math.min(m.critChance, 1);
+            m.slowSpend = Math.min(m.slowSpend, 0.99);
+            m.crysDiscount = Math.min(m.crysDiscount, 0.99); if (!isFinite(m.all)) m.all = Number.MAX_VALUE; if (!isFinite(
+                m.click)) m.click = Number.MAX_VALUE; if (!isFinite(m.passive)) m.passive = Number.MAX_VALUE; return m; }
+
+        function getComboMult() { const c = G.combo,
+                m = getMultipliers(); const max = m.comboMax || 0; let base = 1; if (c >= Math.max(1, 500 - max * 50))
+                base = 1.3; else if (c >= Math.max(1, 100 - max * 10)) base = 1.15; else if (c >= Math.max(1, 50 - max *
+                    5)) base = 1.08; else if (c >= Math.max(1, 10 - max)) base = 1.03; return 1 + (base - 1) * m
+            .comboBonus; }
+
+        function getClickPower() { const m = getMultipliers(); let base = 1; for (let i = 0; i < UPC.length; i++) base +=
+                UPC[i].pc * G.pcLv[i]; for (let i = 0; i < UMA.length; i++) base += UMA[i].pc * G.magicLv[i];
+            let pow = base * m.click * m.all * getComboMult(); if (G.quantLv[1]) pow *= 2; return Math.min(Math.floor(
+                pow), Number.MAX_SAFE_INTEGER); }
+
+        function getPassivePS() { const m = getMultipliers(); let base = 0; for (let i = 0; i < UPS.length; i++) base +=
+                UPS[i].ps * G.psLv[i]; for (let i = 0; i < UTE.length; i++) base += UTE[i].ps * G.techLv[i]; for (let i =
+                    0; i < UCO.length; i++) base += UCO[i].ps * G.cosmosLv[i]; return Math.min(Math.floor(base * m
+                .passive * m.all), Number.MAX_SAFE_INTEGER); }
+
+        function getAutoClicks() { const m = getMultipliers(); return Math.max(0, Math.floor(m.auto)); }
+
+        function getCost(base, lv) { const m = getMultipliers(); const inf = G.inflationFactor || 1;
+            const raw = base * safePow(1.13, lv) * inf; const discounted = raw * (1 - m.discount); return Math.max(1,
+                isFinite(discounted) ? Math.floor(discounted) : Infinity); }
+
+        function getPetCost(i) { const p = PETS[i],
+                lv = G.petLv[i]; return Math.max(1, Math.floor(p.base * lv * safePow(1.65, lv))); }
+        let shopTab = 0,
+            petTab = 0,
+            relicTab = 0,
+            achTab = 0;
+        let progressTab = 0,
+            tasksTab = 0;
+        let goldenActive = false;
+        let comboTimer = null;
+        let lastUIUpdate = 0;
+        let lastGameTick = 0;
+        let whaleTimer = 0,
+            sharkTimer = 0,
+            leviathanTimer = 0,
+            critGuaranteeTimer = 0;
+        let lastAutoFloatTime = 0;
+        let pendingResetType = null;
+        let pendingBulkCount = 0;
+        let pendingBulkGain = 0;
+        let isResetting = false;
+        let offlineGain = 0;
+        let lastEventCheck = 0;
+        let currentPage = 'game';
+        let inflationAccum = 0;
+
+        function buildCurrenciesRow() { let h = ''; for (const c of CURRENCIES) { if (c.id === 'coins') continue;
+                const v = G[c.id]; if (v > 0) h += '<div class="currency-item ' + c.color +
+                    '"><span class="icon">' + c.icon + '</span><span>' + fmt(v) + '</span></div>'; } document
+                .getElementById('currenciesRow').innerHTML = h; const cb = document.getElementById('cycleBadge'); if (G
+                    .cycles > 0) { cb.classList.add('visible');
+                cb.textContent = 'Цикл ' + (G.cycles + 1); } else { cb.classList.remove('visible'); } }
+
+        function buildShop() { const tabs = [{ n: 'Доход', arr: UPS, lv: G.psLv, cls: 'gold' }, { n: 'Клик', arr: UPC,
+                lv: G.pcLv, cls: 'blue' }, { n: 'Технологии', arr: UTE, lv: G.techLv, cls: 'cyan' }, { n: 'Магия',
+                arr: UMA, lv: G.magicLv, cls: 'pink' }, { n: 'Космос', arr: UCO, lv: G.cosmosLv, cls: 'indigo' }];
+            let th = ''; for (let i = 0; i < tabs.length; i++) th += '<button class="tab ' + (shopTab === i ? 'active' :
+                '') + '" id="shopTabBtn' + i + '">' + tabs[i].n + '</button>';
+            document.getElementById('shopTabs').innerHTML = th; for (let i = 0; i < tabs.length; i++) { document
+                    .getElementById('shopTabBtn' + i).addEventListener('click', function() { setShopTab(i); }); }
+            const t = tabs[shopTab];
+            let h = ''; for (let i = 0; i < t.arr.length; i++) { const u = t.arr[i],
+                    lv = t.lv[i],
+                    cost = getCost(u.base, lv),
+                    canBuy = G.coins >= cost && isFinite(cost); const eff = u.ps ? ('+' + fmt(u.ps) + '/с') : ('+' +
+                    fmt(u.pc) + '/клик'); const total = u.ps ? fmt(u.ps * lv) : fmt(u.pc * lv);
+                h += '<div class="upgrade-card"><div class="upgrade-icon ' + t.cls + '">' + u.icon +
+                    '</div><div class="upgrade-info"><div class="upgrade-name">' + u.name +
+                    '</div><div class="upgrade-desc">' + eff + ' • Всего: ' + total +
+                    '</div><div class="upgrade-level">Уровень ' + lv +
+                    '</div></div><button class="upgrade-btn gold ' + (canBuy ? '' : 'disabled') +
+                    '" id="shopBuyBtn_' + shopTab + '_' + i + '">🪙 ' + fmt(cost) + '</button></div>'; }
+            document.getElementById('shopList').innerHTML = h; for (let i = 0; i < t.arr.length; i++) { const btn =
+                    document.getElementById('shopBuyBtn_' + shopTab + '_' + i); if (btn && !btn.classList.contains(
+                        'disabled')) { btn.addEventListener('click', function() { buyUpgrade(shopTab, i); }); } }
+            const inf = G.inflationFactor || 1; const infPct = ((inf - 1) * 100).toFixed(1);
+            document.getElementById('inflationDisplay').textContent = inf > 1.001 ? '🔴 Инфляция +' + infPct + '%' : ''; }
+
+        function setShopTab(t) { shopTab = t;
+            buildShop();
+            hapticSelect(); }
+
+        function buildRebirths() { let h = ''; for (const r of REBIRTHS) { const gain = calcRebirthGain(r.id);
+                const sourceVal = getRebirthSourceValue(r.id); const threshold = getRebirthThreshold(r.id);
+                const ok = sourceVal >= threshold; const count = G.rebirthCounts[r.id] || 0;
+                const deficit = threshold - sourceVal; let btnText = ok ? (r.name + ': +' + fmt(gain) + ' ' + r.icon) :
+                    ('Не хватает ' + fmt(deficit)); const shop = RESET_SHOPS[r.id];
+                let shopHtml = ''; if (shop && (G[shop.cur] > 0 || (G.rebirthCounts[r.id] || 0) > 0)) { const lvKey =
+                        'resetUpgLv_' + r.id; if (!G[lvKey]) G[lvKey] = new Array(shop.upgrades.length).fill(0);
+                    let bonusLines = []; for (let j = 0; j < shop.upgrades.length; j++) { const su = shop.upgrades[j],
+                            slv = G[lvKey][j] || 0; if (slv > 0) bonusLines.push(su.icon + ' ' + su.name + ': ур.' +
+                        slv); } if (bonusLines.length > 0) shopHtml +=
+                        '<div style="background:var(--bg-primary);border-radius:var(--radius-sm);padding:10px;margin:12px 0;text-align:left;font-size:11px;color:var(--text-secondary)">' +
+                        bonusLines.join(' • ') + '</div>';
+                    shopHtml += '<div class="section-subtitle">' + shop.icon + ' Магазин ' + r.name + '</div>'; for (let
+                        j = 0; j < shop.upgrades.length; j++) { const su = shop.upgrades[j],
+                            slv = G[lvKey][j] || 0; const scost = getResetUpgCost(shop, j, slv);
+                        const canBuy = (G[shop.cur] || 0) >= scost && (!su.max || slv < su.max);
+                        const isMax = su.max && slv >= su.max;
+                        shopHtml += '<div class="upgrade-card"><div class="upgrade-icon ' + shop.cls + '">' + su
+                            .icon + '</div><div class="upgrade-info"><div class="upgrade-name">' + su.name +
+                            '</div><div class="upgrade-desc">' + su.desc +
+                            '</div><div class="upgrade-level">Ур. ' + slv + (su.max ? ' / ' + su.max : '') +
+                            '</div></div><button class="upgrade-btn ' + shop.cls + ' ' + (isMax ? 'disabled' :
+                                canBuy ? '' : 'disabled') + '" id="resetBuyBtn_' + r.id + '_' + j + '">' + (isMax ?
+                                'MAX' : shop.icon + ' ' + scost) + '</button></div>'; } }
+                let maxPossible = 0;
+                let simSource = getRebirthSourceValue(r.id);
+                let simCount = G.rebirthCounts[r.id] || 0;
+                let simThreshold = getRebirthThreshold(r.id);
+                while (simSource >= simThreshold && maxPossible < 1000) {
+                    simSource -= simThreshold;
+                    simCount++;
+                    maxPossible++;
+                    simThreshold = Math.ceil(r.baseReq * safePow(r.scale, simCount));
+                }
+                h += '<div class="rebirth-card"><div class="title">' + r.icon + ' ' + r.name +
+                    '</div><div class="desc">' + r.desc + '</div><div class="count">Выполнено: ' + count +
+                    ' раз • Порог: ' + fmt(threshold) + (maxPossible > 1 ? ' • Можно: ' + maxPossible + ' раз' : '') +
+                    '</div><div class="gain" style="color:' + r.color + '">' + (ok ? r.icon + ' ' + fmt(gain) : '') +
+                    '</div><div class="req">' + (ok ? 'Условие выполнено!' : 'Прогресс: ' + fmt(sourceVal) + ' / ' + fmt(
+                        threshold)) +
+                    '</div><button class="rebirth-btn ' + (ok ? '' : 'disabled') + '" style="background:' + r
+                    .color + '" id="requestResetBtn_' + r.id + '">' + btnText +
+                    '</button>' + (maxPossible > 1 ?
+                        '<button class="rebirth-btn" style="background:' + r.color +
+                        '; margin-top:8px;" id="maxResetBtn_' + r.id + '">Сбросить ' + maxPossible + ' раз</button>' :
+                        '') +
+                    shopHtml + '</div>'; }
+            document.getElementById('progressContent').innerHTML = h; for (const r of REBIRTHS) { const btn = document
+                    .getElementById('requestResetBtn_' + r.id); if (btn && !btn.classList.contains('disabled')) { btn
+                        .addEventListener('click', function() { requestReset(r.id); }); } const maxBtn = document
+                    .getElementById('maxResetBtn_' + r.id); if (maxBtn) { maxBtn.addEventListener('click', function() {
+                        maxReset(r.id); }); } const shop = RESET_SHOPS[r.id]; if (shop) { for (let j = 0; j < shop
+                        .upgrades.length; j++) { const rbtn = document.getElementById('resetBuyBtn_' + r.id + '_' +
+                            j); if (rbtn && !rbtn.classList.contains('disabled')) { rbtn.addEventListener('click',
+                            function() { buyResetUpgrade(r.id, j); }); } } } }
+            }
+
+        function buildPets() { const tabs = [{ n: 'Обычные', r: 'common' }, { n: 'Редкие', r: 'rare' },
+            { n: 'Эпические', r: 'epic' }, { n: 'Легендарные', r: 'legendary' }]; let th = ''; for (let i = 0; i <
+                tabs.length; i++) th += '<button class="tab ' + (petTab === i ? 'active' : '') + '" id="petTabBtn' + i +
+                '">' + tabs[i].n + '</button>';
+            let h = th; for (let i = 0; i < PETS.length; i++) { const p = PETS[i]; if (p.rarity !== tabs[petTab].r)
+                continue; const lv = G.petLv[i],
+                    evo = G.petEvo[i],
+                    cost = getPetCost(i),
+                    canBuy = G.coins >= cost && isFinite(cost); const locked = (p.reqReb && G.totalRebirths < 1) || (p
+                    .reqPres && G.totalPrestiges < 1) || (p.reqAsc && G.totalAscensions < 1) || (p.reqOmega && G
+                    .omega < 1); const canEvo = lv >= 100 && evo < 5 && G.crystals >= 9;
+                h += '<div class="pet-card ' + p.rarity + ' ' + (locked ? 'locked' : '') +
+                    '"><div class="pet-icon">' + p.icon + '</div><div class="pet-info"><div class="pet-name">' + p
+                    .name + '</div><div class="pet-effect">' + p.desc + (evo > 0 ? ' (×' + safePow(2, evo).toFixed(
+                        0) + ' эво)' : '') + '</div><div class="pet-level">' + (locked ? '🔒 Заблокирован' :
+                        'Ур. ' + lv) + '</div>' + (evo > 0 ? '<div class="pet-evo">⭐ Эволюция ' + evo +
+                        '/5</div>' : '') + '</div>' + (locked ? '' : '<div class="pet-actions">' + (lv >= 100 &&
+                        evo < 5 ? '<button class="upgrade-btn gold ' + (canEvo ? '' : 'disabled') +
+                            '" id="evolvePetBtn_' + i + '">🌟 Эво 9💎</button>' :
+                        '<button class="upgrade-btn gold ' + (canBuy ? '' : 'disabled') +
+                        '" id="upgradePetBtn_' + i + '">🪙 ' + fmt(cost) + '</button>') + '</div>') +
+                    '</div>'; }
+            document.getElementById('progressContent').innerHTML = h; for (let i = 0; i < PETS.length; i++) { const p =
+                    PETS[i]; if (p.rarity !== tabs[petTab].r) continue; const locked = (p.reqReb && G.totalRebirths <
+                    1) || (p.reqPres && G.totalPrestiges < 1) || (p.reqAsc && G.totalAscensions < 1) || (p.reqOmega &&
+                    G.omega < 1); if (locked) continue; const lv = G.petLv[i],
+                    evo = G.petEvo[i]; if (lv >= 100 && evo < 5) { const btn = document.getElementById(
+                    'evolvePetBtn_' + i); if (btn && !btn.classList.contains('disabled')) btn.addEventListener(
+                    'click', function() { evolvePet(i); }); } else { const btn = document.getElementById(
+                    'upgradePetBtn_' + i); if (btn && !btn.classList.contains('disabled')) btn.addEventListener(
+                    'click', function() { upgradePet(i); }); } } for (let i = 0; i < tabs.length; i++) { document
+                    .getElementById('petTabBtn' + i).addEventListener('click', function() { setPetTab(i); }); } }
+
+        function setPetTab(t) { petTab = t;
+            buildPets();
+            hapticSelect(); }
+
+        function buildRelics() { const tabs = [{ n: 'Обычные', r: 'common' }, { n: 'Редкие', r: 'rare' },
+            { n: 'Легенд.', r: 'legendary' }]; let th = ''; for (let i = 0; i < tabs.length; i++) th +=
+                '<button class="tab ' + (relicTab === i ? 'active' : '') + '" id="relicTabBtn' + i + '">' + tabs[i].n +
+                '</button>';
+            let h =
+                '<button class="explore-btn" id="exploreBtn">🔍 Исследовать</button><div class="explore-timer" id="exploreTimer"></div>' +
+                th; for (const r of RELICS) { if (r.rarity !== tabs[relicTab].r) continue;
+                const owned = G.relicsFound.includes(r.name);
+                h += '<div class="relic-card ' + r.rarity + ' ' + (owned ? '' : 'locked') +
+                    '"><div class="relic-icon">' + (owned ? r.icon : '❓') + '</div><div class="relic-name">' + (
+                        owned ? r.name : '???') + '</div>' + (owned ? '<div class="relic-effect">' + r.desc +
+                        '</div>' : '') + '</div>'; }
+            document.getElementById('progressContent').innerHTML = h; const timeSince = (Date.now() - G.lastExplore) /
+                1000; const canExplore = timeSince >= 3780; const exploreBtn = document.getElementById(
+                'exploreBtn'); if (exploreBtn) { exploreBtn.disabled = !canExplore;
+                exploreBtn.addEventListener('click', exploreRelic); } const exploreTimer = document.getElementById(
+                'exploreTimer'); if (exploreTimer) exploreTimer.textContent = canExplore ? 'Можно исследовать!' :
+                'Доступно через ' + Math.ceil((3780 - timeSince) / 60) + ' мин'; for (let i = 0; i < tabs.length; i++) {
+                document.getElementById('relicTabBtn' + i).addEventListener('click', function() { setRelicTab(
+                i); }); } }
+
+        function setRelicTab(t) { relicTab = t;
+            buildRelics();
+            hapticSelect(); }
+
+        function buildTasks() { const today = getDateString(); if (G.dailyDate !== today) { G.dailyDate = today;
+                const shuffled = [...DAILY_POOL].sort(() => Math.random() - 0.5);
+                G.dailyTasks = shuffled.slice(0, 5);
+                G.dailyProgress = new Array(5).fill(0);
+                G.dailyClaimed = new Array(5).fill(false);
+                G.dailyClicks = 0;
+                G.dailyEarned = 0;
+                G.dailyBought = 0;
+                G.dailyGolden = 0;
+            save(); }
+            let h =
+                '<div class="daily-header"><div class="title">📅 Ежедневные задания</div><div class="timer" id="dailyTimer">Обновление через: 00:00</div></div>';
+            for (let i = 0; i < 5; i++) { const t = G.dailyTasks[i] || DAILY_POOL[i];
+                let cur = 0; if (t.type === 'clicks') cur = G.dailyClicks; if (t.type === 'earn') cur = G
+                .dailyEarned; if (t.type === 'buy') cur = G.dailyBought; if (t.type === 'combo') cur = G
+                .maxCombo; if (t.type === 'golden') cur = G.dailyGolden; const done = cur >= t.goal,
+                    claimed = G.dailyClaimed[i],
+                    pct = Math.min(100, cur / t.goal * 100); const rwText = t.reward.coins ? ('+' + fmt(t.reward
+                        .coins) + ' 🪙') : ('+' + t.reward.crystals + ' 💎');
+                h += '<div class="task-card"><div class="task-header"><div class="task-info"><span class="task-icon">📌</span><span class="task-name">' +
+                    t.desc + '</span></div><span class="task-reward">' + rwText +
+                    '</span></div><div class="task-progress"><div class="task-progress-fill ' + (done ? 'done' : '') +
+                    '" style="width:' + pct + '%"></div></div><div class="task-footer"><span class="task-status">' + fmt(
+                        cur) + ' / ' + fmt(t.goal) + '</span><button class="task-btn ' + (claimed ? 'claimed' : done ?
+                        'claim' : 'pending') + '" id="claimTaskBtn_' + i + '">' + (claimed ? '✅' : done ? 'Забрать' :
+                        '...') + '</button></div></div>'; }
+            document.getElementById('tasksContent').innerHTML = h; for (let i = 0; i < 5; i++) { const btn = document
+                    .getElementById('claimTaskBtn_' + i); if (btn && btn.classList.contains('claim')) btn
+                    .addEventListener('click', function() { claimTask(i); }); } const now = new Date(),
+                tom = new Date(now);
+            tom.setDate(tom.getDate() + 1);
+            tom.setHours(0, 0, 0, 0); const diff = Math.floor((tom - now) / 1000),
+                hh = Math.floor(diff / 3600).toString().padStart(2, '0'),
+                mm = Math.floor((diff % 3600) / 60).toString().padStart(2, '0'); const dt = document.getElementById(
+                'dailyTimer'); if (dt) dt.textContent = 'Обновление через: ' + hh + ':' + mm; }
+
+        function buildAchievements() { const cats = ['clicks', 'wealth', 'rebirths', 'upgrades', 'special', 'pets',
+                'relics', 'resets', 'speed', 'mastery' ]; const catNames = ['Клики', 'Богатство', 'Перерожд.',
+                'Улучшения', 'Особые', 'Питомцы', 'Реликвии', 'Сбросы', 'Скорость', 'Мастерство' ]; let th = ''; for (
+                let i = 0; i < cats.length; i++) th += '<button class="tab ' + (achTab === i ? 'active' : '') +
+                '" id="achTabBtn' + i + '">' + catNames[i] + '</button>'; const done = G.achDone.filter(x => x)
+            .length; let h = th +
+                '<div style="text-align:center;margin-bottom:12px;font-size:14px;color:var(--text-secondary)">Выполнено: ' +
+                done + '/100</div><div class="ach-grid">'; const filtered = ACHIEVEMENTS.filter(a => a.cat === cats[
+                achTab]); for (let i = 0; i < filtered.length; i++) { const a = filtered[i],
+                    idx = ACHIEVEMENTS.indexOf(a),
+                    d = G.achDone[idx];
+                h += '<div class="ach-card ' + (d ? 'done' : 'locked') + '"><div class="ach-icon">' + a.icon +
+                    '</div><div class="ach-name">' + a.name + '</div></div>'; }
+            h += '</div>';
+            document.getElementById('tasksContent').innerHTML = h; for (let i = 0; i < cats.length; i++) { document
+                    .getElementById('achTabBtn' + i).addEventListener('click', function() { setAchTab(i); }); } }
+
+        function setAchTab(t) { achTab = t;
+            buildAchievements();
+            hapticSelect(); }
+
+        function buildTournament() { const today = getDateString(); if (G.tournamentDate !== today) { G.tournamentDate =
+                today;
+                G.tournamentScore = 0;
+                G.tournamentPlayers = []; for (let i = 0; i < 9; i++) G.tournamentPlayers.push({ name: 'Игрок' + Math
+                        .floor(Math.random() * 1000), score: Math.floor(Math.random() * 1e9) }); } const all = [{ name: 'Вы',
+                    score: G.tournamentScore, me: true }, ...G.tournamentPlayers].sort((a, b) => b.score - a.score);
+            let h =
+                '<div class="tournament-card"><div class="tournament-header"><div class="title">Заработай больше всех за 24ч!</div><div class="timer" id="tournamentTimer">Осталось: 00:00</div></div>';
+            for (let i = 0; i < Math.min(10, all.length); i++) { const p = all[i],
+                    rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                h += '<div class="tournament-row ' + (p.me ? 'me' : '') + '"><div class="tournament-rank ' + rc +
+                    '">#' + (i + 1) + '</div><div class="tournament-name">' + p.name +
+                    '</div><div class="tournament-score">' + fmt(p.score) + '</div></div>'; }
+            h += '</div><div class="section-subtitle">Испытания мастерства</div>'; for (let i = 0; i < CHALLENGES.length;
+                i++) { const c = CHALLENGES[i],
+                    done = G.challengesDone[i];
+                h += '<div class="challenge-card ' + (done ? 'completed' : '') + '"><div class="challenge-name">' + c
+                    .name + '</div><div class="challenge-desc">' + c.desc + '</div><div class="challenge-reward">' + c
+                    .reward + '</div><button class="challenge-btn ' + (done ? 'completed' : '') + '">' + (done ?
+                        '✅ Выполнено' : 'В процессе') + '</button></div>'; }
+            document.getElementById('tasksContent').innerHTML = h; const now = new Date(),
+                tom = new Date(now);
+            tom.setDate(tom.getDate() + 1);
+            tom.setHours(0, 0, 0, 0); const diff = Math.floor((tom - now) / 1000),
+                hh = Math.floor(diff / 3600).toString().padStart(2, '0'),
+                mm = Math.floor((diff % 3600) / 60).toString().padStart(2, '0'); const tt = document.getElementById(
+                'tournamentTimer'); if (tt) tt.textContent = 'Осталось: ' + hh + ':' + mm; }
+
+        function buildStats() { const m = getMultipliers(); const stats = [
+            ['Всего кликов', fmt(G.totalClicks)], ['Заработано', fmt(G.totalEarned)],
+            ['Перерождений', G.totalRebirths], ['Престижей', G.totalPrestiges],
+            ['Вознесений', G.totalAscensions], ['Циклов', G.cycles], ['Макс комбо', G.maxCombo],
+            ['Золотых', G.goldenCaught], ['Реликвий', G.relicsFound.length],
+            ['Множ. клика', '×' + fmt(m.click * m.all)], ['Множ. пассива', '×' + fmt(m.passive * m.all)],
+            ['Крит шанс', (m.critChance * 100).toFixed(1) + '%'],
+            ['Крит множ.', '×' + m.critMult.toFixed(1)], ['Авто/сек', fmt(getAutoClicks())],
+            ['Скидка', (m.discount * 100).toFixed(1) + '%'],
+            ['Инфляция', ((G.inflationFactor - 1) * 100).toFixed(1) + '%'] ]; let h = '<div class="stats-list">'; for (
+                const [l, v] of stats) h += '<div class="stat-row"><span class="stat-label">' + l +
+                '</span><span class="stat-value">' + v + '</span></div>';
+            h += '</div>';
+            document.getElementById('moreContent').innerHTML = h; }
+
+        function buildProgress() { const tabs = [{ n: 'Сбросы', fn: buildRebirths }, { n: 'Питомцы', fn: buildPets },
+            { n: 'Реликвии', fn: buildRelics }]; let th = ''; for (let i = 0; i < tabs.length; i++) th +=
+                '<button class="tab ' + (progressTab === i ? 'active' : '') + '" id="progressTabBtn' + i + '">' + tabs[
+                    i].n + '</button>';
+            document.getElementById('progressTabs').innerHTML = th; for (let i = 0; i < tabs.length; i++) { document
+                    .getElementById('progressTabBtn' + i).addEventListener('click', function() { setProgressTab(i); }); }
+            tabs[progressTab].fn(); }
+
+        function setProgressTab(t) { progressTab = t;
+            buildProgress();
+            hapticSelect(); }
+
+        function buildTasksPage() { const tabs = [{ n: 'Ежедневные', fn: buildTasks }, { n: 'Достижения',
+            fn: buildAchievements }, { n: 'Турнир', fn: buildTournament }]; let th = ''; for (let i = 0; i < tabs
+                .length; i++) th += '<button class="tab ' + (tasksTab === i ? 'active' : '') + '" id="tasksTabBtn' + i +
+                '">' + tabs[i].n + '</button>';
+            document.getElementById('tasksTabs').innerHTML = th; for (let i = 0; i < tabs.length; i++) { document
+                    .getElementById('tasksTabBtn' + i).addEventListener('click', function() { setTasksTab(i); }); }
+            tabs[tasksTab].fn(); }
+
+        function setTasksTab(t) { tasksTab = t;
+            buildTasksPage();
+            hapticSelect(); }
+
+        function updateUI() { buildCurrenciesRow();
+            document.getElementById('headerBalance').textContent = fmt(G.coins);
+            document.getElementById('mainBalance').textContent = fmt(G.coins);
+            document.getElementById('mainPerSec').textContent = '+' + fmt(getPassivePS()) + ' / сек';
+            document.getElementById('statClick').textContent = fmt(getClickPower());
+            document.getElementById('statPS').textContent = fmt(getPassivePS()); const cm = getComboMult(),
+                combo = G.combo; const comboBadge = document.getElementById('comboBadge');
+            comboBadge.classList.toggle('visible', combo > 0);
+            document.getElementById('comboValue').textContent = combo; const cmEl = document.getElementById('comboMult');
+            cmEl.textContent = '×' + cm.toFixed(2);
+            cmEl.className = 'combo-mult'; if (combo >= 500) cmEl.classList.add('level-4'); else if (combo >= 100) cmEl
+                .classList.add('level-3'); else if (combo >= 50) cmEl.classList.add('level-2'); else if (combo >= 10)
+                cmEl.classList.add('level-1'); const auto = getAutoClicks();
+            document.getElementById('autoInfo').classList.toggle('visible', auto > 0);
+            document.getElementById('autoClicks').textContent = auto; if (G.activeEvent && Date.now() < G.eventEnd) { const
+                    ev = EVENTS.find(e => e.name === G.activeEvent),
+                    left = Math.ceil((G.eventEnd - Date.now()) / 1000);
+                document.getElementById('eventBanner').innerHTML = ev ? '<div class="event-banner"><div class="title">' + ev
+                    .icon + ' ' + G.activeEvent + '</div><div class="desc">' + ev.desc +
+                    '</div><div class="timer">' + left + 'с</div></div>' : ''; } else { document.getElementById(
+                    'eventBanner').innerHTML = '';
+                G.activeEvent = null; } const ps = getPassivePS(); const taxThreshold = ps * 86400; const taxActive = G
+                .coins > taxThreshold && taxThreshold > 0;
+            document.getElementById('taxIndicator').classList.toggle('visible', taxActive); }
+
+        function buyUpgrade(tab, idx) { const tabs = [{ arr: UPS, lv: G.psLv }, { arr: UPC, lv: G.pcLv }, { arr: UTE,
+                lv: G.techLv }, { arr: UMA, lv: G.magicLv }, { arr: UCO, lv: G.cosmosLv }]; const t = tabs[tab],
+                u = t.arr[idx],
+                cost = getCost(u.base, t.lv[idx]); if (!isFinite(cost) || G.coins < cost) return; const m =
+            getMultipliers(); if (m.freeUpgradeChance && Math.random() < m.freeUpgradeChance) { t.lv[idx]++;
+                G.totalUpgrades++;
+                G.dailyBought++;
+            toast('Бесплатно!', 'success');
+            checkAchievements();
+            buildShop();
+            updateUI();
+            save();
+            hapticImpact('light'); return; } let actualCost = cost; if (m.slowSpend > 0) actualCost = Math.floor(cost * (
+                    1 - m.slowSpend));
+            G.coins -= actualCost;
+            G.dailySpent += actualCost;
+            t.lv[idx]++;
+            G.totalUpgrades++;
+            G.dailyBought++;
+            hapticImpact('light');
+            checkAchievements();
+            buildShop();
+            updateUI();
+            save(); }
+
+        function upgradePet(i) { const cost = getPetCost(i); if (!isFinite(cost) || G.coins < cost) return;
+            G.coins -= cost;
+            G.petLv[i]++;
+            G.dailyPetUpg++;
+            hapticImpact('light');
+            checkAchievements(); if (currentPage === 'progress' && progressTab === 1) buildPets();
+            updateUI();
+            save(); }
+
+        function evolvePet(i) { if (G.petLv[i] < 100 || G.petEvo[i] >= 5 || G.crystals < 9) return;
+            G.crystals -= 9;
+            G.petEvo[i]++;
+            G.petLv[i] = 1;
+            hapticImpact('medium');
+            toast('Эволюция! 🌟', 'success'); if (currentPage === 'progress' && progressTab === 1) buildPets();
+            updateUI();
+            save(); }
+
+        function buyResetUpgrade(shopId, idx) { const shop = RESET_SHOPS[shopId]; if (!shop) return;
+            const u = shop.upgrades[idx]; const lvKey = 'resetUpgLv_' + shopId; if (!G[lvKey]) G[lvKey] = new Array(shop
+                .upgrades.length).fill(0); const lv = G[lvKey][idx] || 0; if (u.max && lv >= u.max) return;
+            const cost = getResetUpgCost(shop, idx, lv); if ((G[shop.cur] || 0) < cost) return;
+            G[shop.cur] -= cost;
+            G[lvKey][idx] = lv + 1;
+            hapticImpact('light');
+            toast(u.name + ' ⬆️', 'success');
+            buildRebirths();
+            updateUI();
+            save(); }
+
+        function requestReset(rebId) { if (isResetting) return; if (!canDoReset(rebId)) { const threshold =
+                getRebirthThreshold(rebId); const sourceVal = getRebirthSourceValue(rebId);
+                toast('Не хватает ' + fmt(threshold - sourceVal), 'error');
+                hapticNotify('error'); return; } const r = REBIRTHS.find(x => x.id === rebId); if (!r) return;
+            const gain = calcRebirthGain(rebId); if (gain < 1) return;
+            pendingResetType = rebId;
+            pendingBulkCount = 1;
+            pendingBulkGain = gain; const count = G.rebirthCounts[rebId] || 0;
+            document.getElementById('rebModalIcon').textContent = r.icon;
+            document.getElementById('rebModalTitle').textContent = r.name + ' #' + (count + 1);
+            document.getElementById('rebModalDesc').textContent = getResetDescription(rebId);
+            document.getElementById('rebModalGain').textContent = '+' + fmt(gain) + ' ' + r.icon;
+            document.getElementById('rebModalGain').style.color = r.color;
+            document.getElementById('rebirthModal').classList.add('show');
+            hapticImpact('light');
+            updateBackButton(); }
+
+        function maxReset(rebId) { if (isResetting) return; const r = REBIRTHS.find(x => x.id === rebId); if (!r)
+        return; let simSource = getRebirthSourceValue(rebId); let simCount = G.rebirthCounts[rebId] || 0;
+            let totalGain = 0; let maxCount = 0; let simThreshold = getRebirthThreshold(rebId); while (simSource >=
+                simThreshold && maxCount < 1000) { const gain = calcRebirthGainSingle(simSource, simThreshold, rebId);
+                totalGain += gain;
+                simSource -= simThreshold;
+                simCount++;
+                maxCount++;
+                simThreshold = Math.ceil(r.baseReq * safePow(r.scale, simCount)); } if (maxCount < 1) {
+                toast('Недостаточно ресурсов', 'error');
+                hapticNotify('error'); return; }
+            pendingResetType = rebId;
+            pendingBulkCount = maxCount;
+            pendingBulkGain = totalGain;
+            document.getElementById('rebModalIcon').textContent = r.icon;
+            document.getElementById('rebModalTitle').textContent = r.name + ' x' + maxCount;
+            document.getElementById('rebModalDesc').textContent = 'Будет выполнено ' + maxCount +
+                ' сбросов подряд. ' + getResetDescription(rebId);
+            document.getElementById('rebModalGain').textContent = 'Всего: +' + fmt(totalGain) + ' ' + r.icon;
+            document.getElementById('rebModalGain').style.color = r.color;
+            document.getElementById('rebirthModal').classList.add('show');
+            hapticImpact('light');
+            updateBackButton(); }
+
+        function calcRebirthGainSingle(sourceVal, threshold, rebId) { const r = REBIRTHS.find(x => x.id ===
+        rebId); if (!r) return 0; const m = getMultipliers(); let divisor; if (rebId === 'crystals') divisor =
+                7400000; else if (rebId === 'stars') divisor = 1600; else if (rebId === 'energy') divisor = 417;
+            else if (rebId === 'quantum') divisor = 181; else if (rebId === 'dark') divisor = 90; else if (rebId ===
+                'fragments') divisor = 45; else if (rebId === 'sparks') divisor = 22; else if (rebId === 'dimCrystals')
+                divisor = 10; else if (rebId === 'eternity') divisor = 5; else if (rebId === 'omega') divisor = 2;
+            else divisor = 4.5; let base = Math.sqrt(Math.sqrt(sourceVal / divisor)); let bonus = m.rebirthMult; if (
+                rebId === 'crystals') { const phoenixIdx = getPetIndex('Феникс Эмбер'); if (phoenixIdx >= 0 && G.petLv[
+                    phoenixIdx] > 1) bonus *= 1 + PETS[phoenixIdx].val * G.petLv[phoenixIdx]; } return Math.max(1, Math
+                .floor(base * bonus)); }
+
+        function cancelReset() { document.getElementById('rebirthModal').classList.remove('show');
+            pendingResetType = null;
+            pendingBulkCount = 0;
+            pendingBulkGain = 0;
+            updateBackButton(); }
+
+        function performResetLogic(rIdx) { if (rIdx < 0 || rIdx >= REBIRTHS.length) return;
+            G.coins = 0;
+            G.totalEarned = 0;
+            G.psLv.fill(0);
+            G.pcLv.fill(0);
+            G.techLv.fill(0);
+            G.magicLv.fill(0);
+            G.cosmosLv.fill(0);
+            G.dailyClicks = 0;
+            G.dailyEarned = 0;
+            G.dailyBought = 0;
+            G.dailySpent = 0;
+            G.inflationFactor = 1;
+            G.lastInflationTick = Date.now(); if (rIdx >= 1) { G.crystals = 0;
+                G.crysLv.fill(0);
+                G.totalCrystals = 0;
+                G.totalRebirths = 0; if (G.resetUpgLv_crystals) G.resetUpgLv_crystals.fill(0); } if (rIdx >= 2) { G
+                .stars = 0;
+                G.starLv.fill(0);
+                G.totalStars = 0;
+                G.totalPrestiges = 0; if (G.resetUpgLv_stars) G.resetUpgLv_stars.fill(0); } if (rIdx >= 3) { G.energy =
+                0;
+                G.totalAscensions = 0; if (G.resetUpgLv_energy) G.resetUpgLv_energy.fill(0); } if (rIdx >= 4) { G
+                .quantum = 0;
+                G.quantLv.fill(0); if (G.resetUpgLv_quantum) G.resetUpgLv_quantum.fill(0); } if (rIdx >= 5) { G.dark =
+                0;
+                G.darkLv.fill(0); if (G.resetUpgLv_dark) G.resetUpgLv_dark.fill(0); } if (rIdx >= 6) { G.fragments =
+                0; if (G.resetUpgLv_fragments) G.resetUpgLv_fragments.fill(0); } if (rIdx >= 7) { G.sparks = 0; if (G
+                    .resetUpgLv_sparks) G.resetUpgLv_sparks.fill(0); } if (rIdx >= 8) { G.dimCrystals = 0; if (G
+                    .resetUpgLv_dimCrystals) G.resetUpgLv_dimCrystals.fill(0); } if (rIdx >= 9) { G.eternity = 0; if (G
+                    .resetUpgLv_eternity) G.resetUpgLv_eternity.fill(0); } if (rIdx >= 10) { G.omega = 0;
+                G.cycles++;
+                G.petLv.fill(1);
+                G.petEvo.fill(0); if (G.resetUpgLv_omega) G.resetUpgLv_omega.fill(0); } }
+
+        function executeReset() { if (isResetting || !pendingResetType) return; const rebId = pendingResetType;
+            const bulkCount = pendingBulkCount || 1;
+            const totalGain = pendingBulkGain || 0;
+            pendingResetType = null;
+            pendingBulkCount = 0;
+            pendingBulkGain = 0;
+            document.getElementById('rebirthModal').classList.remove('show');
+            updateBackButton(); const r = REBIRTHS.find(x => x.id === rebId); if (!r) return; if (bulkCount < 1) { toast(
+                    'Ошибка', 'error'); return; }
+            isResetting = true; const overlay = document.getElementById('resetOverlay'); const resetText = document
+                .getElementById('resetText'); const resetGainText = document.getElementById('resetGainText');
+            resetText.textContent = r.name.toUpperCase();
+            resetText.style.color = r.color;
+            resetGainText.textContent = '+' + fmt(totalGain) + ' ' + r.icon;
+            resetGainText.style.color = r.color;
+            overlay.classList.add('show');
+            requestAnimationFrame(() => { overlay.classList.add('visible'); });
+            hapticNotify('success');
+            setTimeout(() => { G[r.currency] = (G[r.currency] || 0) + totalGain; if (!G.rebirthCounts) G.rebirthCounts =
+                {}; for (let i = 0; i < bulkCount; i++) { G.rebirthCounts[rebId] = (G.rebirthCounts[rebId] || 0) +
+                1; if (rebId === 'crystals') { const sourceVal = getRebirthSourceValue(rebId);
+                        const threshold = getRebirthThreshold(rebId);
+                        G.coins -= threshold; if (i === 0) { G.totalCrystals += calcRebirthGainSingle(sourceVal,
+                                threshold, rebId);
+                            G.totalRebirths++;
+                            G.dailyRebirths++; } } if (rebId === 'stars') { if (i === 0) { G.totalStars +=
+                            calcRebirthGainSingle(getRebirthSourceValue(rebId),
+                            getRebirthThreshold(rebId), rebId);
+                            G.totalPrestiges++; } G.crystals -= getRebirthThreshold(rebId); } if (rebId ===
+                        'energy') { if (i === 0) G.totalAscensions++;
+                    G.stars -= getRebirthThreshold(rebId); } if (rebId !== 'crystals' && rebId !== 'stars' && rebId !==
+                        'energy') { G[r.req] -= getRebirthThreshold(rebId); } if (rebId === 'absolute') { G
+                        .cycles++; } }
+                performResetLogic(REBIRTHS.findIndex(x => x.id === rebId)); const rb = calcResetBonuses(); if (rb
+                    .startCoins > 0) G.coins += rb.startCoins; if (rb.startCrystals > 0 && rebId === 'crystals') G
+                    .crystals += Math.floor(rb.startCrystals);
+                G.inflationFactor = 1;
+                G.lastInflationTick = Date.now();
+                checkAchievements(); if (currentPage === 'progress' && progressTab === 0) buildRebirths();
+                updateUI();
+                save();
+                setTimeout(() => { overlay.classList.remove('visible');
+                    setTimeout(() => { overlay.classList.remove('show');
+                        isResetting = false;
+                        hapticNotify('success');
+                        toast('+' + fmt(totalGain) + ' ' + r.icon + ' ' + r.name + '!',
+                    'success'); }, 300); }, 1500); }, 300); }
+
+        function claimTask(i) { if (G.dailyClaimed[i]) return; const t = G.dailyTasks[i] || DAILY_POOL[i];
+            let cur = 0; if (t.type === 'clicks') cur = G.dailyClicks; if (t.type === 'earn') cur = G.dailyEarned; if (
+                t.type === 'buy') cur = G.dailyBought; if (t.type === 'combo') cur = G.maxCombo; if (t.type ===
+                'golden') cur = G.dailyGolden; if (cur < t.goal) return;
+            G.dailyClaimed[i] = true; if (t.reward.coins) { G.coins += t.reward.coins;
+                G.totalEarned += t.reward.coins;
+                toast('+' + fmt(t.reward.coins) + ' 🪙', 'success'); } if (t.reward.crystals) { G.crystals += t.reward
+                    .crystals;
+                G.totalCrystals += t.reward.crystals;
+                toast('+' + t.reward.crystals + ' 💎', 'success'); }
+            hapticImpact('medium'); if (currentPage === 'tasks' && tasksTab === 0) buildTasks();
+            updateUI();
+            save(); }
+
+        function exploreRelic() { if (Date.now() - G.lastExplore < 3780000) return;
+            G.lastExplore = Date.now();
+            G.dailyRelics++; if (Math.random() > 0.85) { toast('Ничего не найдено...', 'error'); if (currentPage ===
+                    'progress' && progressTab === 2) buildRelics();
+                save(); return; } const notFound = RELICS.filter(r => !G.relicsFound.includes(r.name)); if (!notFound
+                .length) { toast('Все найдено!', 'success'); return; } const weights = { common: 70, rare: 25,
+                legendary: 5 }; const pool = []; for (const r of notFound) pool.push(...new Array(weights[r.rarity])
+                .fill(r)); const found = pool[Math.floor(Math.random() * pool.length)];
+            G.relicsFound.push(found.name);
+            document.getElementById('relicIcon').textContent = found.icon;
+            document.getElementById('relicTitle').textContent = found.name;
+            document.getElementById('relicDesc').textContent = found.desc;
+            document.getElementById('relicModal').classList.add('show');
+            hapticNotify('success');
+            checkAchievements(); if (currentPage === 'progress' && progressTab === 2) buildRelics();
+            save();
+            updateBackButton(); }
+
+        function closeRelicModal() { document.getElementById('relicModal').classList.remove('show');
+            updateBackButton(); }
+
+        function doClick(e, isAuto) { const now = Date.now(); if (!isAuto) { if (now - G.lastClickTime < 1500) G
+                    .combo++; else G.combo = 1;
+                G.lastClickTime = now; if (G.combo > G.maxCombo) G.maxCombo = G.combo;
+                clearTimeout(comboTimer); const comboTimeout = 1500 + (getMultipliers().comboTime || 0) * 1000;
+                comboTimer = setTimeout(() => { G.combo = 0; }, comboTimeout); } const m = getMultipliers();
+            let isCrit = Math.random() < m.critChance; if (G.critGuaranteeEnd && Date.now() < G.critGuaranteeEnd) isCrit =
+                Math.random() < Math.max(m.critChance, 0.5); let power = getClickPower(); if (isCrit) { power = Math
+                    .floor(power * m.critMult); if (m.doubleCrit > 0 && Math.random() < m.doubleCrit) power = Math
+                    .floor(power * 2); }
+            G.coins += power;
+            G.totalEarned += power;
+            G.dailyEarned += power;
+            G.tournamentScore += power;
+            G.totalClicks++;
+            G.dailyClicks++; if (isCrit) { G.dailyCrits++; if (!isAuto) { const ct = document.createElement('div');
+                    ct.className = 'crit-text';
+                    ct.textContent = 'КРИТ!';
+                    document.body.appendChild(ct);
+                    setTimeout(() => ct.remove(), 500); }
+                hapticImpact('medium'); } else if (!isAuto) hapticImpact('light'); if (!isAuto && e) { const rect =
+                    document.getElementById('clickArea').getBoundingClientRect(); const x = e.clientX - rect.left,
+                    y = e.clientY - rect.top; const ft = document.createElement('div');
+                ft.className = 'float-text' + (isCrit ? ' crit' : '');
+                ft.textContent = '+' + fmt(power);
+                ft.style.left = x + 'px';
+                ft.style.top = y + 'px';
+                document.getElementById('clickArea').appendChild(ft);
+                ft.addEventListener('animationend', () => ft.remove()); }
+            checkAchievements(); }
+
+        function spawnGolden() { if (goldenActive) return;
+            goldenActive = true; const m = getMultipliers(); const el = document.createElement('div');
+            el.className = 'golden-coin';
+            el.textContent = '🪙';
+            el.style.left = (10 + Math.random() * 70) + '%';
+            el.style.top = (15 + Math.random() * 40) + '%';
+            el.addEventListener('click', function() { const ps = getPassivePS(); const bonus = Math.max(100, Math.floor(
+                    ps * 390 * m.goldenBonus));
+                G.coins += bonus;
+                G.totalEarned += bonus;
+                G.dailyEarned += bonus;
+                G.tournamentScore += bonus;
+                G.goldenCaught++;
+                G.dailyGolden++;
+                G.sessionGolden++;
+                el.remove();
+                goldenActive = false;
+                hapticImpact('medium');
+                toast('+' + fmt(bonus) + ' 🪙', 'success');
+                checkAchievements();
+                updateUI();
+                save(); });
+            document.body.appendChild(el);
+            setTimeout(() => { if (el.parentNode) { el.remove();
+                    goldenActive = false; } }, 5000); const freq = m.goldenFreq || 1;
+            setTimeout(spawnGolden, (90000 + Math.random() * 135000) / Math.max(1, freq)); }
+
+        function checkEvents() { if (G.activeEvent && Date.now() < G.eventEnd) return; if (Date.now() - lastEventCheck <
+                600000) return;
+            lastEventCheck = Date.now(); if (Math.random() > 0.25) return; const ev = EVENTS[Math.floor(Math.random() *
+                EVENTS.length)];
+            G.activeEvent = ev.name;
+            G.eventEnd = Date.now() + ev.dur * 1000;
+            G.dailyEvents++;
+            document.getElementById('eventIcon').textContent = ev.icon;
+            document.getElementById('eventTitle').textContent = ev.name;
+            document.getElementById('eventDesc').textContent = ev.desc + ' (' + ev.dur + 'с)';
+            document.getElementById('eventModal').classList.add('show');
+            hapticNotify('success');
+            updateBackButton(); }
+
+        function closeEventModal() { document.getElementById('eventModal').classList.remove('show');
+            updateBackButton(); }
+
+        function checkAchievements() { let changed = false; for (let i = 0; i < 10; i++)
+                if (!G.achDone[i] && G.totalClicks >= ACHIEVEMENTS[i].goal) { G.achDone[i] = true;
+                    changed = true; } for (let i = 10; i < 20; i++)
+                if (!G.achDone[i] && G.totalEarned >= ACHIEVEMENTS[i].goal) { G.achDone[i] = true;
+                    changed = true; } for (let i = 20; i < 30; i++)
+                if (!G.achDone[i] && G.totalRebirths >= ACHIEVEMENTS[i].goal) { G.achDone[i] = true;
+                    changed = true; } for (let i = 30; i < 40; i++)
+                if (!G.achDone[i] && G.totalUpgrades >= ACHIEVEMENTS[i].goal) { G.achDone[i] = true;
+                    changed = true; } const totalResets = Object.values(G.rebirthCounts || {}).reduce((a, b) => a + b,
+                0); const petsOwned = G.petLv.filter(lv => lv > 1).length; const relicsOwned = G.relicsFound
+            .length; for (let i = 40; i < 50; i++)
+                if (!G.achDone[i] && (G.cycles > 0 || G.goldenCaught >= 50 || G.maxCombo >= 500 || G.bestCrystalRun >=
+                        1e6 || G.sessionGolden >= 100)) { G.achDone[i] = true;
+                    changed = true; } for (let i = 50; i < 60; i++)
+                if (!G.achDone[i] && petsOwned >= ACHIEVEMENTS[i].goal) { G.achDone[i] = true;
+                    changed = true; } for (let i = 60; i < 70; i++)
+                if (!G.achDone[i] && relicsOwned >= ACHIEVEMENTS[i].goal) { G.achDone[i] = true;
+                    changed = true; } for (let i = 70; i < 80; i++)
+                if (!G.achDone[i] && totalResets >= 1) { G.achDone[i] = true;
+                    changed = true; } for (let i = 80; i < 90; i++)
+                if (!G.achDone[i] && (G.totalClicks >= 1e5 || G.totalEarned >= 1e9 || G.dailyClicks >= 1e4)) { G.achDone[
+                        i] = true;
+                    changed = true; } for (let i = 90; i < 100; i++)
+                if (!G.achDone[i] && (G.cycles >= 3 || G.totalRebirths >= 50 || G.relicsFound.length >= 20 || G
+                        .goldenCaught >= 200)) { G.achDone[i] = true;
+                    changed = true; } if (changed) { toast('🏆 Новое достижение!', 'success');
+                hapticNotify('success'); } }
+
+        function processPeriodicBonuses(seconds) { const ps = getPassivePS(); if (ps <= 0) return;
+            whaleTimer += seconds; if (whaleTimer >= 90) { whaleTimer = 0; const whaleIdx = getPetIndex('Кит'); if (
+                    whaleIdx >= 0 && G.petLv[whaleIdx] > 1) { const bonus = Math.floor(ps * 36 * G.petLv[whaleIdx]);
+                    G.coins += bonus;
+                    G.totalEarned += bonus;
+                    G.dailyEarned += bonus; } }
+            sharkTimer += seconds; if (sharkTimer >= 75) { sharkTimer = 0; const sharkIdx = getPetIndex('Акула'); if (
+                    sharkIdx >= 0 && G.petLv[sharkIdx] > 1 && G.totalRebirths > 0) { const bonus = Math.floor(ps * 18);
+                    G.coins += bonus;
+                    G.totalEarned += bonus;
+                    G.dailyEarned += bonus; } }
+            leviathanTimer += seconds; if (leviathanTimer >= 180) { leviathanTimer = 0; const leviathanIdx = getPetIndex(
+                    'Левиафан'); if (leviathanIdx >= 0 && G.petLv[leviathanIdx] > 1) { const bonus = Math.floor(ps *
+                360);
+                    G.coins += bonus;
+                    G.totalEarned += bonus;
+                    G.dailyEarned += bonus; } } }
+
+        function processCritGuaranteeRelic(seconds) { critGuaranteeTimer += seconds; const relicIdx = RELICS.findIndex(r =>
+                r.effect === 'critGuarantee'); if (relicIdx < 0) return; const relic = RELICS[relicIdx]; if (!G
+                .relicsFound.includes(relic.name)) return; if (critGuaranteeTimer >= relic.val) { critGuaranteeTimer =
+                0;
+                G.critGuaranteeEnd = Date.now() + 5000; } }
+
+        function processInflation(seconds) { inflationAccum += seconds; if (inflationAccum >= 300) { const cycles = Math
+                .floor(inflationAccum / 300);
+                inflationAccum -= cycles * 300;
+                G.inflationFactor = (G.inflationFactor || 1) * safePow(1.01, cycles); } }
+
+        function processWealthTax(seconds) { if (Date.now() - (G.lastTaxTick || Date.now()) < 60000) return;
+            G.lastTaxTick = Date.now(); const ps = getPassivePS(); const taxThreshold = ps * 86400; if (taxThreshold >
+                0 && G.coins > taxThreshold) { const excess = G.coins - taxThreshold; const tax = Math.floor(excess *
+                    0.001);
+                G.coins -= tax; } }
+
+        function gameTick(timestamp) { requestAnimationFrame(gameTick); if (!lastGameTick) { lastGameTick = timestamp;
+                return; } const elapsed = (timestamp - lastGameTick) / 1000; if (elapsed < 0.1) return;
+            lastGameTick = timestamp; const seconds = elapsed; const m = getMultipliers(); const ps = getPassivePS(); if (
+                ps > 0) { let earned = ps * seconds; if (m.passSpeed > 0) earned *= (1 + m.passSpeed);
+                earned = Math.floor(earned);
+                G.coins += earned;
+                G.totalEarned += earned;
+                G.dailyEarned += earned;
+                G.tournamentScore += earned; } const auto = getAutoClicks(); if (auto > 0) { const clickPower =
+                getClickPower(); const avgCritMult = 1 + m.critChance * (m.critMult - 1);
+                const autoEarn = Math.floor(auto * clickPower * avgCritMult * seconds);
+                G.coins += autoEarn;
+                G.totalEarned += autoEarn;
+                G.dailyEarned += autoEarn;
+                G.tournamentScore += autoEarn;
+                G.totalClicks += Math.floor(auto * seconds); if (Date.now() - lastAutoFloatTime > 1000) {
+                    lastAutoFloatTime = Date.now(); const rect = document.getElementById('clickArea')
+                        .getBoundingClientRect(); const ft = document.createElement('div');
+                    ft.className = 'float-text';
+                    ft.textContent = '+' + fmt(autoEarn);
+                    ft.style.left = (rect.width / 2) + 'px';
+                    ft.style.top = (rect.height / 2) + 'px';
+                    document.getElementById('clickArea').appendChild(ft);
+                    ft.addEventListener('animationend', () => ft.remove()); } }
+            processPeriodicBonuses(seconds);
+            processCritGuaranteeRelic(seconds);
+            processInflation(seconds);
+            processWealthTax(seconds);
+            G.dailyPlayTime += seconds;
+            checkEvents(); if (timestamp - lastUIUpdate > 100) { lastUIUpdate = timestamp;
+            updateUI(); } }
+
+        function goPage(name) { currentPage = name;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); const page = document
+                .getElementById('page-' + name); if (page) page.classList.add('active'); const navItems = document
+                .querySelectorAll('.nav-item');
+            navItems.forEach(item => { if (item.getAttribute('data-page') === name) item.classList.add('active'); });
+            hapticSelect();
+            updateBackButton(); if (name === 'shop') buildShop(); if (name === 'progress') buildProgress(); if (name ===
+                'tasks') buildTasksPage(); if (name === 'more') buildStats();
+            updateUI(); }
+        let toastTimer;
+
+        function toast(msg, type) { type = type || 'success'; const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast ' + type + ' show';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.remove('show'), 2500); }
+
+        function checkOffline() { const now = Date.now(); const savedTime = G.lastSave; if (!savedTime || savedTime >
+                now) return; const m = getMultipliers(); const maxSec = m.offlineHours * 3600; const diffMs = now -
+            savedTime; if (diffMs < 0 || isNaN(diffMs)) return; const diffSec = Math.min(diffMs / 1000, maxSec); if (
+                diffSec > 60) { const ps = getPassivePS();
+                offlineGain = Math.floor(ps * diffSec * 0.7); if (offlineGain > 0 && isFinite(offlineGain)) { document
+                        .getElementById('offlineAmount').textContent = '+' + fmt(offlineGain) + ' 🪙';
+                    document.getElementById('offlineModal').classList.add('show');
+                    updateBackButton(); } } }
+
+        function claimOffline() { G.coins += offlineGain;
+            G.totalEarned += offlineGain;
+            G.dailyEarned += offlineGain;
+            document.getElementById('offlineModal').classList.remove('show');
+            hapticImpact('medium');
+            updateBackButton();
+            updateUI();
+            save(); }
+
+        function init() { load();
+            updateUI();
+            document.getElementById('clickBtn').addEventListener('pointerdown', function(e) { e.preventDefault();
+                doClick(e, false); });
+            document.getElementById('claimOfflineBtn').addEventListener('click', claimOffline);
+            document.getElementById('cancelResetBtn').addEventListener('click', cancelReset);
+            document.getElementById('confirmResetBtn').addEventListener('click', executeReset);
+            document.getElementById('closeRelicModalBtn').addEventListener('click', closeRelicModal);
+            document.getElementById('closeEventModalBtn').addEventListener('click', closeEventModal);
+            document.querySelectorAll('.nav-item').forEach(item => { item.addEventListener('click', function() { const
+                        page = this.getAttribute('data-page'); if (page) goPage(page); }); });
+            checkOffline();
+            setTimeout(() => spawnGolden(), 60000 + Math.random() * 120000);
+            setInterval(save, 3000);
+            requestAnimationFrame(gameTick);
+            buildShop();
+            buildProgress();
+            buildTasksPage();
+            buildStats();
+            updateBackButton();
+            G.lastInflationTick = G.lastInflationTick || Date.now();
+            G.lastTaxTick = G.lastTaxTick || Date.now();
+            if (tgUser && tgUser.first_name) updateHeaderUser(); }
+        init();
+    </script>
+</body>
+</html>
