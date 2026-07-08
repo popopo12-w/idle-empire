@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
     <title>Idle Empire</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- === ADSGRAM: добавлен SDK === -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -135,6 +137,40 @@
         }
         .header-balance .icon {
             font-size: 14px;
+        }
+        /* === ADSGRAM: стили для рекламных кнопок === */
+        .ad-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 0 20px;
+            flex-wrap: wrap;
+        }
+        .ad-btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark));
+            color: #000;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .ad-btn:active {
+            transform: scale(0.96);
+        }
+        .ad-btn:disabled {
+            background: var(--bg-card-hover);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .page {
@@ -1384,6 +1420,11 @@
         <div class="modal" id="relicModal"><div class="modal-box"><div class="modal-icon" id="relicIcon">🎁</div><div class="modal-title" id="relicTitle">Находка!</div><div class="modal-desc" id="relicDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeRelicModalBtn">Отлично</button></div></div></div>
         <div class="modal" id="eventModal"><div class="modal-box"><div class="modal-icon" id="eventIcon">⚡</div><div class="modal-title" id="eventTitle">Событие!</div><div class="modal-desc" id="eventDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeEventModalBtn">Понятно</button></div></div></div>
         <header class="header"><div class="header-inner"><div class="header-title" id="headerTitle">Idle Empire <span class="cycle-badge" id="cycleBadge">Цикл 1</span></div><div class="header-balance"><span class="icon">🪙</span><span id="headerBalance">0</span><span class="tax-indicator" id="taxIndicator">💰налог</span></div></div></header>
+        <!-- === ADSGRAM: кнопки рекламы === -->
+        <div class="ad-buttons" id="adButtons">
+            <button class="ad-btn" id="rewardAdBtn" onclick="showRewardAd(1000)">🎬 +1000 монет</button>
+            <button class="ad-btn" id="offlineBoostBtn" onclick="showRewardAd(0, true)">💰 ×2 оффлайн-доход</button>
+        </div>
         <main class="page active" id="page-game"><div id="eventBanner"></div><div class="stats-grid"><div class="stat-card"><div class="label">За клик</div><div class="value blue" id="statClick">1</div></div><div class="stat-card"><div class="label">В секунду</div><div class="value gold" id="statPS">0</div></div></div><div class="balance-display"><div class="coin-icon">🪙</div><div class="amount" id="mainBalance">0</div><div class="per-sec" id="mainPerSec">+0 / сек</div></div><div class="click-area" id="clickArea"><div class="combo-badge" id="comboBadge"><span class="combo-text">Комбо</span><span class="combo-value" id="comboValue">0</span><span class="combo-mult" id="comboMult">×1.0</span></div><button class="click-btn" id="clickBtn"><span class="icon">💎</span><span class="label">TAP</span></button></div><div class="auto-info" id="autoInfo"><span>🤖</span><span>Автокликер: <strong id="autoClicks">0</strong>/сек</span></div><div class="currencies-row" id="currenciesRow"></div></main>
         <main class="page" id="page-shop"><div class="section-title">Магазин <span class="inflation-text" id="inflationDisplay"></span></div><div class="tabs" id="shopTabs"></div><div id="shopList"></div></main>
         <main class="page" id="page-progress"><div class="section-title">Прогресс</div><div class="tabs" id="progressTabs"></div><div id="progressContent"></div></main>
@@ -2232,6 +2273,72 @@
         let lastEventCheck = 0;
         let currentPage = 'game';
         let inflationAccum = 0;
+
+        // === ADSGRAM: Инициализация рекламы ===
+        let rewardAd = null;
+        let interstitialAd = null;
+        function initAdsGram() {
+            if (!window.AdsGram || !tg) return;
+            try {
+                rewardAd = new AdsGram.RewardAd({ blockId: '37717' });
+                interstitialAd = new AdsGram.InterstitialAd({ blockId: 'int-37718' });
+                // Автоматический показ Interstitial каждые 5 минут (300000 мс)
+                setInterval(() => {
+                    if (interstitialAd && !document.querySelector('.modal.show') && !isResetting) {
+                        interstitialAd.show().catch(() => {});
+                    }
+                }, 300000);
+            } catch (e) {
+                console.warn('AdsGram init error:', e);
+            }
+        }
+
+        function showRewardAd(amount, isBoost = false) {
+            if (!rewardAd) {
+                toast('Реклама временно недоступна', 'error');
+                return;
+            }
+            try {
+                rewardAd.show()
+                    .then(() => {
+                        if (isBoost) {
+                            // Умножение оффлайн-дохода: просто выдаём текущий оффлайн-доход ещё раз
+                            const bonus = Math.floor(getPassivePS() * 3600 * 0.7 * 2); // примерно 2 часа усиленного дохода
+                            G.coins += bonus;
+                            toast(`Оффлайн-доход удвоен! +${fmt(bonus)} 🪙`, 'success');
+                        } else {
+                            G.coins += amount;
+                            toast(`+${fmt(amount)} 🪙`, 'success');
+                        }
+                        G.totalEarned += amount;
+                        updateUI();
+                        save();
+                    })
+                    .catch((err) => {
+                        console.warn('Reward ad error:', err);
+                        toast('Реклама не загрузилась', 'error');
+                    });
+            } catch (e) {
+                toast('Ошибка рекламы', 'error');
+            }
+        }
+
+        function showInterstitialAd() {
+            if (!interstitialAd) {
+                toast('Реклама временно недоступна', 'error');
+                return;
+            }
+            try {
+                interstitialAd.show().catch((err) => {
+                    console.warn('Interstitial ad error:', err);
+                });
+            } catch (e) {}
+        }
+
+        // Инициализируем рекламу после загрузки страницы
+        window.addEventListener('load', () => {
+            if (tg) initAdsGram();
+        });
 
         function buildCurrenciesRow() { let h = ''; for (const c of CURRENCIES) { if (c.id === 'coins') continue;
                 const v = G[c.id]; if (v > 0) h += '<div class="currency-item ' + c.color +
