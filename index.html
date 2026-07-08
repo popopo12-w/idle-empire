@@ -1462,6 +1462,22 @@
                 min-width: 75px;
             }
         }
+
+        /* === Новые стили для модалки сундука === */
+        .chest-rarity-common .modal-box { border-color: #aaa; }
+        .chest-rarity-rare .modal-box { border-color: #4caf50; }
+        .chest-rarity-epic .modal-box { border-color: #9c27b0; }
+        .chest-rarity-legendary .modal-box { border-color: #ff9800; }
+        .chest-rarity-mythic .modal-box { border-color: #f44336; }
+        .chest-rarity-divine .modal-box { border-color: #ffd700; }
+        .chest-rarity-cosmic .modal-box { border-color: #00bcd4; }
+        .chest-rarity-absolute .modal-box { border-color: #fff; box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+        #chestModal .modal-icon { animation: chestPulse 1s ease infinite; }
+        @keyframes chestPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -1472,6 +1488,18 @@
         <div class="reset-overlay" id="resetOverlay"><div class="reset-text" id="resetText">ПЕРЕРОЖДЕНИЕ</div><div class="reset-gain" id="resetGainText">+0 💎</div></div>
         <div class="modal" id="relicModal"><div class="modal-box"><div class="modal-icon" id="relicIcon">🎁</div><div class="modal-title" id="relicTitle">Находка!</div><div class="modal-desc" id="relicDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeRelicModalBtn">Отлично</button></div></div></div>
         <div class="modal" id="eventModal"><div class="modal-box"><div class="modal-icon" id="eventIcon">⚡</div><div class="modal-title" id="eventTitle">Событие!</div><div class="modal-desc" id="eventDesc">Описание</div><div class="modal-btns"><button class="modal-btn ok" id="closeEventModalBtn">Понятно</button></div></div></div>
+        <!-- Модалка сундука -->
+        <div class="modal" id="chestModal">
+            <div class="modal-box chest-rarity-common" id="chestModalBox">
+                <div class="modal-icon" id="chestIcon">🎁</div>
+                <div class="modal-title" id="chestTitle">Сундук открыт!</div>
+                <div class="modal-desc" id="chestDesc">Редкость: Обычный</div>
+                <div class="modal-amount gold" id="chestAmount">+0</div>
+                <div class="modal-btns">
+                    <button class="modal-btn ok" id="closeChestModalBtn">Отлично!</button>
+                </div>
+            </div>
+        </div>
         <header class="header"><div class="header-inner"><div class="header-title" id="headerTitle">Idle Empire <span class="cycle-badge" id="cycleBadge">Цикл 1</span></div><div class="header-balance"><span class="icon">🪙</span><span id="headerBalance">0</span><span class="tax-indicator" id="taxIndicator">💰налог</span></div></div></header>
         <main class="page active" id="page-game"><div id="eventBanner"></div><div class="stats-grid"><div class="stat-card"><div class="label">За клик</div><div class="value blue" id="statClick">1</div></div><div class="stat-card"><div class="label">В секунду</div><div class="value gold" id="statPS">0</div></div></div><div class="balance-display"><div class="coin-icon">🪙</div><div class="amount" id="mainBalance">0</div><div class="per-sec" id="mainPerSec">+0 / сек</div></div><div class="click-area" id="clickArea"><div class="combo-badge" id="comboBadge"><span class="combo-text">Комбо</span><span class="combo-value" id="comboValue">0</span><span class="combo-mult" id="comboMult">×1.0</span></div><button class="click-btn" id="clickBtn"><span class="icon">💎</span><span class="label">TAP</span></button></div><div class="auto-info" id="autoInfo"><span>🤖</span><span>Автокликер: <strong id="autoClicks">0</strong>/сек</span></div><div class="currencies-row" id="currenciesRow"></div></main>
         <main class="page" id="page-shop"><div class="section-title">Магазин <span class="inflation-text" id="inflationDisplay"></span></div><div class="tabs" id="shopTabs"></div><div id="shopList"></div></main>
@@ -2120,7 +2148,9 @@
             critGuaranteeEnd: 0,
             inflationFactor: 1,
             lastInflationTick: Date.now(),
-            lastTaxTick: Date.now()
+            lastTaxTick: Date.now(),
+            chestAdProgress: 0,
+            chestProgressTime: 0
         };
         let G = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
@@ -2131,6 +2161,8 @@
             G.clickBoostMultiplier = G.clickBoostMultiplier || 1;
             G.clickBoostEndTime = G.clickBoostEndTime || 0;
             G.adCooldowns = G.adCooldowns || {};
+            G.chestAdProgress = G.chestAdProgress || 0;
+            G.chestProgressTime = G.chestProgressTime || 0;
         }
         ensureAdState();
 
@@ -2564,131 +2596,95 @@
                 .catch(() => toast('Реклама недоступна', 'error'));
         }
 
-        // 5. Мгновенно +1 час оффлайн-дохода
-        function adInstantOfflineHour() {
-            if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
-            if (isCooldownActive('offlineHour')) { toast('Кулдаун активен', 'error'); return; }
-            const reward = Math.floor(getPassivePS() * 3600);
-            rewardAd.show()
-                .then((result) => {
-                    if (result.done) {
-                        G.coins += reward;
-                        G.totalEarned += reward;
-                        G.dailyEarned += reward;
-                        setCooldown('offlineHour', 15 * 60 * 1000);
-                        updateUI();
-                        save();
-                        hapticImpact('medium');
-                        toast(`💎 +${fmt(reward)} монет (1 час дохода)!`, 'success');
-                        buildAdShop();
-                    } else {
-                        toast('Реклама не досмотрена', 'error');
-                    }
-                })
-                .catch(() => toast('Реклама недоступна', 'error'));
+        // ============= УДАЛЕНА функция adInstantOfflineHour =============
+
+        // ============= НОВАЯ функция для сундука =============
+        function getChestRarity() {
+            const roll = Math.random() * 100;
+            let rarity, multiplier;
+            if (roll < 40) { rarity = 'Обычный'; multiplier = 1; }
+            else if (roll < 65) { rarity = 'Редкий'; multiplier = 2; }
+            else if (roll < 80) { rarity = 'Эпический'; multiplier = 5; }
+            else if (roll < 90) { rarity = 'Легендарный'; multiplier = 10; }
+            else if (roll < 95) { rarity = 'Мифический'; multiplier = 50; }
+            else if (roll < 98) { rarity = 'Божественный'; multiplier = 100; }
+            else if (roll < 99.5) { rarity = 'Космический'; multiplier = 500; }
+            else { rarity = 'Абсолютный'; multiplier = 1000; }
+            return { rarity, multiplier };
         }
 
-        // 6. Рандомный сундук
+        function openChestAnimation(reward, rarity) {
+            const modal = document.getElementById('chestModal');
+            const box = document.getElementById('chestModalBox');
+            const icon = document.getElementById('chestIcon');
+            const title = document.getElementById('chestTitle');
+            const desc = document.getElementById('chestDesc');
+            const amount = document.getElementById('chestAmount');
+
+            // Устанавливаем класс для стилизации
+            box.className = 'modal-box chest-rarity-' + rarity.toLowerCase();
+            icon.textContent = '🎁';
+            title.textContent = 'Сундук открыт!';
+            desc.textContent = 'Редкость: ' + rarity;
+            amount.textContent = '+' + fmt(reward) + ' 🪙';
+
+            modal.classList.add('show');
+            hapticImpact('heavy');
+            updateBackButton();
+        }
+
+        // Новая функция adRandomChest с двумя рекламами
         function adRandomChest() {
             if (!rewardAd) { toast('Реклама недоступна', 'error'); return; }
-            const rewards = [500, 1000, 5000, 10000, 50000];
-            const weights = [40, 30, 20, 8, 2];
-            rewardAd.show()
-                .then((result) => {
-                    if (result.done) {
-                        const totalWeight = weights.reduce((a, b) => a + b, 0);
-                        let random = Math.random() * totalWeight;
-                        let selectedReward = rewards[0];
-                        for (let i = 0; i < rewards.length; i++) {
-                            random -= weights[i];
-                            if (random <= 0) {
-                                selectedReward = rewards[i];
-                                break;
-                            }
+            // Инициализация прогресса
+            if (G.chestAdProgress === undefined) G.chestAdProgress = 0;
+            if (G.chestProgressTime === undefined) G.chestProgressTime = 0;
+            if (G.chestAdProgress === 0) {
+                // Первая реклама
+                rewardAd.show()
+                    .then((result) => {
+                        if (result.done) {
+                            G.chestAdProgress = 1;
+                            G.chestProgressTime = Date.now(); // сохраняем время
+                            save();
+                            updateUI();
+                            buildAdShop();
+                            hapticImpact('medium');
+                            toast('🎬 Осталось посмотреть ещё одну рекламу!', 'success');
+                        } else {
+                            toast('Реклама не досмотрена', 'error');
                         }
-                        G.coins += selectedReward;
-                        G.totalEarned += selectedReward;
-                        G.dailyEarned += selectedReward;
-                        updateUI();
-                        save();
-                        hapticImpact('medium');
-                        toast(`🎁 Из сундука выпало ${fmt(selectedReward)} монет!`, 'success');
-                        buildAdShop();
-                    } else {
-                        toast('Реклама не досмотрена', 'error');
-                    }
-                })
-                .catch(() => toast('Реклама недоступна', 'error'));
+                    })
+                    .catch(() => toast('Реклама недоступна', 'error'));
+            } else if (G.chestAdProgress === 1) {
+                // Вторая реклама
+                rewardAd.show()
+                    .then((result) => {
+                        if (result.done) {
+                            // Расчёт награды от баланса
+                            const currentCoins = G.coins;
+                            const minReward = Math.max(currentCoins, 1000);
+                            const maxReward = Math.max(currentCoins * 1000, 100000);
+                            const finalReward = Math.floor(minReward + Math.random() * (maxReward - minReward + 1));
+                            // Получаем редкость (для отображения)
+                            const rarity = getChestRarity();
+                            G.coins += finalReward;
+                            G.totalEarned += finalReward;
+                            G.dailyEarned += finalReward;
+                            G.chestAdProgress = 0; // сброс
+                            G.chestProgressTime = 0;
+                            save();
+                            updateUI();
+                            buildAdShop();
+                            hapticImpact('heavy');
+                            openChestAnimation(finalReward, rarity.rarity);
+                        } else {
+                            toast('Реклама не досмотрена', 'error');
+                        }
+                    })
+                    .catch(() => toast('Реклама недоступна', 'error'));
+            }
         }
-
-        // === AD SHOP: рендер магазина ===
-        function buildAdShop() {
-            const container = document.getElementById('adShopContainer');
-            if (!container) return;
-            const currentCoins = G.coins;
-            const multipliedReward = Math.max(Math.floor(currentCoins * 50), 500);
-            const offlineHourReward = Math.floor(getPassivePS() * 3600);
-            const items = [
-                {
-                    icon: '💰', title: 'Монеты ×50',
-                    description: `Получи ${fmt(multipliedReward)} монет!`,
-                    hint: 'Умножает твой текущий баланс на 50',
-                    cooldownKey: null, action: 'adRewardMultiplyCoins()'
-                },
-                {
-                    icon: '⚡', title: '×2 доход на 5 минут',
-                    description: 'Удваивает пассивный доход',
-                    hint: 'Кулдаун: 5 минут',
-                    cooldownKey: 'boost2x', action: 'adBoostPassive2x()'
-                },
-                {
-                    icon: '🚀', title: '×3 доход на 3 минуты',
-                    description: 'Утраивает пассивный доход',
-                    hint: 'Кулдаун: 10 минут',
-                    cooldownKey: 'boost3x', action: 'adBoostPassive3x()'
-                },
-                {
-                    icon: '👆', title: '×2 клик на 60 сек',
-                    description: 'Удваивает награду за клик',
-                    hint: 'Кулдаун: 5 минут',
-                    cooldownKey: 'click2x', action: 'adBoostClick2x()'
-                },
-                {
-                    icon: '💎', title: '+1 час оффлайн-дохода',
-                    description: `Получи ${fmt(offlineHourReward)} монет мгновенно`,
-                    hint: 'Кулдаун: 15 минут',
-                    cooldownKey: 'offlineHour', action: 'adInstantOfflineHour()'
-                },
-                {
-                    icon: '🎁', title: 'Рандомный сундук',
-                    description: 'От 500 до 50 000 монет',
-                    hint: 'Испытай удачу!',
-                    cooldownKey: null, action: 'adRandomChest()'
-                }
-            ];
-            container.innerHTML = items.map(item => {
-                const isCooldown = item.cooldownKey && isCooldownActive(item.cooldownKey);
-                const cooldownMs = item.cooldownKey ? getCooldownRemaining(item.cooldownKey) : 0;
-                return `
-                    <div class="ad-shop-item ${isCooldown ? 'cooldown' : ''}">
-                        <div class="ad-shop-icon">${item.icon}</div>
-                        <div class="ad-shop-info">
-                            <div class="ad-shop-title">${item.title}</div>
-                            <div class="ad-shop-desc">${item.description}</div>
-                            <div class="ad-shop-hint">${item.hint}</div>
-                        </div>
-                        <button class="ad-shop-btn" onclick="${item.action}" ${isCooldown ? 'disabled' : ''}>
-                            ${isCooldown ? `⏱️ ${formatCooldown(cooldownMs)}` : '🎬 Смотреть'}
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Автообновление магазина рекламы, если открыта вкладка
-        setInterval(() => {
-            if (currentPage === 'ads') buildAdShop();
-        }, 1000);
 
         // === остальные функции игры (не тронуты) ===
         function buildCurrenciesRow() { let h = ''; for (const c of CURRENCIES) { if (c.id === 'coins') continue;
@@ -3441,6 +3437,15 @@
             save(); }
 
         function init() { load();
+            // === CHEST PROGRESS AUTO-RESET ===
+            if (typeof G.chestAdProgress === 'undefined') G.chestAdProgress = 0;
+            if (G.chestAdProgress > 0 && G.chestProgressTime) {
+                var elapsed = Date.now() - G.chestProgressTime;
+                if (elapsed > 30 * 60 * 1000) {
+                    G.chestAdProgress = 0;
+                    G.chestProgressTime = 0;
+                }
+            }
             updateUI();
             document.getElementById('clickBtn').addEventListener('pointerdown', function(e) { e.preventDefault();
                 doClick(e, false); });
@@ -3449,6 +3454,11 @@
             document.getElementById('confirmResetBtn').addEventListener('click', executeReset);
             document.getElementById('closeRelicModalBtn').addEventListener('click', closeRelicModal);
             document.getElementById('closeEventModalBtn').addEventListener('click', closeEventModal);
+            // Закрытие модалки сундука
+            document.getElementById('closeChestModalBtn').addEventListener('click', function() {
+                document.getElementById('chestModal').classList.remove('show');
+                updateBackButton();
+            });
             document.querySelectorAll('.nav-item').forEach(item => { item.addEventListener('click', function() { const
                         page = this.getAttribute('data-page'); if (page) goPage(page); }); });
             checkOffline();
@@ -3465,8 +3475,85 @@
             G.lastInflationTick = G.lastInflationTick || Date.now();
             G.lastTaxTick = G.lastTaxTick || Date.now();
             if (tgUser && tgUser.first_name) updateHeaderUser();
-            initAdsGram();
+            initAdsGram(); }
+
+        // === ОБНОВЛЕННАЯ функция buildAdShop (с учетом сундука) ===
+        function buildAdShop() {
+            const container = document.getElementById('adShopContainer');
+            if (!container) return;
+            const currentCoins = G.coins;
+            const multipliedReward = Math.max(Math.floor(currentCoins * 50), 500);
+            // Расчёт для сундука от баланса
+            const minReward = Math.max(currentCoins, 1000);
+            const maxReward = Math.max(currentCoins * 1000, 100000);
+            const items = [
+                {
+                    icon: '💰', title: 'Монеты ×50',
+                    description: `Получи ${fmt(multipliedReward)} монет!`,
+                    hint: 'Умножает твой текущий баланс на 50',
+                    cooldownKey: null, action: 'adRewardMultiplyCoins()'
+                },
+                {
+                    icon: '⚡', title: '×2 доход на 5 минут',
+                    description: 'Удваивает пассивный доход',
+                    hint: 'Кулдаун: 5 минут',
+                    cooldownKey: 'boost2x', action: 'adBoostPassive2x()'
+                },
+                {
+                    icon: '🚀', title: '×3 доход на 3 минуты',
+                    description: 'Утраивает пассивный доход',
+                    hint: 'Кулдаун: 10 минут',
+                    cooldownKey: 'boost3x', action: 'adBoostPassive3x()'
+                },
+                {
+                    icon: '👆', title: '×2 клик на 60 сек',
+                    description: 'Удваивает награду за клик',
+                    hint: 'Кулдаун: 5 минут',
+                    cooldownKey: 'click2x', action: 'adBoostClick2x()'
+                },
+                // === УДАЛЕН элемент offlineHour ===
+                // === НОВЫЙ элемент для сундука ===
+                {
+                    icon: '🎁', title: 'Легендарный сундук',
+                    description: 'От ' + fmt(minReward) + ' до ' + fmt(maxReward),
+                    hint: G.chestAdProgress > 0 
+                        ? '⏳ Осталась 1 реклама из 2!' 
+                        : 'x1 - x1000 от твоего баланса! Смотри 2 рекламы',
+                    cooldownKey: null, action: 'adRandomChest()'
+                }
+            ];
+            container.innerHTML = items.map(item => {
+                const isChest = item.action === 'adRandomChest()';
+                const isCooldown = item.cooldownKey && isCooldownActive(item.cooldownKey);
+                const cooldownMs = item.cooldownKey ? getCooldownRemaining(item.cooldownKey) : 0;
+                let buttonText;
+                let disabled = false;
+                if (isChest) {
+                    // Специальная обработка для сундука
+                    const progress = G.chestAdProgress || 0;
+                    buttonText = progress === 0 ? '🎬 Открыть (1/2)' : '🎬 Открыть (2/2) 🎁';
+                    disabled = false; // всегда доступна
+                } else {
+                    buttonText = isCooldown ? `⏱️ ${formatCooldown(cooldownMs)}` : '🎬 Смотреть';
+                    disabled = isCooldown;
+                }
+                return `
+                    <div class="ad-shop-item ${isCooldown && !isChest ? 'cooldown' : ''}">
+                        <div class="ad-shop-icon">${item.icon}</div>
+                        <div class="ad-shop-info">
+                            <div class="ad-shop-title">${item.title}</div>
+                            <div class="ad-shop-desc">${item.description}</div>
+                            <div class="ad-shop-hint">${item.hint}</div>
+                        </div>
+                        <button class="ad-shop-btn" onclick="${item.action}" ${disabled ? 'disabled' : ''}>
+                            ${buttonText}
+                        </button>
+                    </div>
+                `;
+            }).join('');
         }
+
+        // Запуск после загрузки
         init();
     </script>
 </body>
