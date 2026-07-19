@@ -7,12 +7,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="description" content="Империя Свиней — инкрементал в Telegram">
 <title>🐷 Империя Свиней</title>
+
+<!-- CSP: Разрешаем telegram.org, инлайн-стили/скрипты (через nonce), data: для SVG -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org; script-src 'self' 'nonce-r4nd0mNonce123' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://telegram.org; font-src 'self';">
+
 <!-- Telegram Web App SDK -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-/* ===== CSS VARIABLES (Theming) ===== */
+<script src="https://telegram.org/js/telegram-web-app.js" nonce="r4nd0mNonce123"></script>
+
+<style nonce="r4nd0mNonce123">
+/* ===== CSS VARIABLES ===== */
 :root{
-  /* Base (Dark default) */
   --bg:#1a120d; --bg-elev:#231810; --bg-card:#2d1f15; --border:#4a3528; --border-bright:#6b4a35;
   --fg:#fff8f0; --fg-dim:#d4c4b0; --muted:#9a8a78;
   --feed:#ffd54f; --feed-dim:#ffd54f33; --feed-glow:#ffd54f88;
@@ -32,62 +36,29 @@
   --safe-left:env(safe-area-inset-left, 0);
   --safe-right:env(safe-area-inset-right, 0);
 }
-/* ===== RESET & BASE ===== */
+/* ===== RESET ===== */
 *,*:before,*:after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;font-size:16px;-webkit-text-size-adjust:100%}
-body{
-  height:100%;margin:0;font-family:var(--font);background:var(--bg);color:var(--fg);
-  line-height:1.5;overflow:hidden;touch-action:manipulation;-webkit-font-smoothing:antialiased;
-  display:flex;flex-direction:column;
-  /* Prevent zoom on input focus iOS */
-  font-size:clamp(14px, 2vw, 16px);
-}
+body{height:100%;margin:0;font-family:var(--font);background:var(--bg);color:var(--fg);line-height:1.5;overflow:hidden;touch-action:manipulation;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;font-size:clamp(14px, 2vw, 16px)}
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 /* ===== LAYOUT ===== */
-header{
-  position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:100;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:0 calc(var(--gap) + var(--safe-left)) 0 calc(var(--gap) + var(--safe-right));
-  background:linear-gradient(180deg,var(--bg-elev) 60%,transparent);
-  border-bottom:1px solid var(--border);user-select:none;
-}
-main{
-  flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column;
-  padding-top:var(--header-h);padding-bottom:calc(var(--tab-h) + var(--safe-bottom));
-}
-#app-root{flex:1;overflow:hidden;position:relative} /* Container for panels */
-.tab-panel{
-  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
-  padding:var(--gap);padding-bottom:calc(var(--gap)+var(--safe-bottom));
-  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(8px);
-  transition:opacity .2s var(--trans),visibility .2s,transform .2s var(--trans);
-  will-change:opacity,transform;
-}
+header{position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:100;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 calc(var(--gap) + var(--safe-left)) 0 calc(var(--gap) + var(--safe-right));background:linear-gradient(180deg,var(--bg-elev) 60%,transparent);border-bottom:1px solid var(--border);user-select:none}
+main{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column;padding-top:var(--header-h);padding-bottom:calc(var(--tab-h) + var(--safe-bottom))}
+#app-root{flex:1;overflow:hidden;position:relative}
+.tab-panel{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:var(--gap);padding-bottom:calc(var(--gap)+var(--safe-bottom));opacity:0;visibility:hidden;pointer-events:none;transform:translateY(8px);transition:opacity .2s var(--trans),visibility .2s,transform .2s var(--trans);will-change:opacity,transform}
 .tab-panel.active{opacity:1;visibility:visible;pointer-events:auto;transform:none;z-index:10}
-.tab-bar{
-  position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);z-index:100;
-  display:flex;background:var(--bg-elev);border-top:1px solid var(--border);
-  padding-bottom:var(--safe-bottom);box-shadow:0 -4px 20px rgba(0,0,0,.3);
-}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);z-index:100;display:flex;background:var(--bg-elev);border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);box-shadow:0 -4px 20px rgba(0,0,0,.3)}
 .tab-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--fat),var(--gold));transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
 .tab-bar.has-active::before{transform:scaleX(1)}
-.tab-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  background:transparent;border:none;color:var(--muted);font-size:.65rem;font-weight:600;
-  cursor:pointer;padding:6px 0 4px;min-height:var(--tab-h);position:relative;
-  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
-  transition:color .1s,transform .05s;
-}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:transparent;border:none;color:var(--muted);font-size:.65rem;font-weight:600;cursor:pointer;padding:6px 0 4px;min-height:var(--tab-h);position:relative;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:color .1s,transform .05s}
 .tab-btn:active{transform:scale(.92);color:var(--fat)}
 .tab-btn.active{color:var(--fat);font-weight:700}
 .tab-btn .icon{font-size:1.3rem;line-height:1;transition:transform .1s}
 .tab-btn.active .icon{transform:scale(1.15)}
 /* ===== COMPONENTS ===== */
 .stat-pill{display:inline-flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:.7rem}
-.stat-pill .icon{font-size:.9rem}.stat-pill .val{font-weight:700;font-family:var(--mono);white-space:nowrap}
-.stat-pill .lbl{color:var(--muted);text-transform:uppercase;font-size:.55rem;letter-spacing:.5px}
+.stat-pill .icon{font-size:.9rem}.stat-pill .val{font-weight:700;font-family:var(--mono);white-space:nowrap}.stat-pill .lbl{color:var(--muted);text-transform:uppercase;font-size:.55rem;letter-spacing:.5px}
 .stat-pill.feed .val{color:var(--feed)}.stat-pill.fat .val{color:var(--fat)}.stat-pill.dna .val{color:var(--dna)}.stat-pill.sci .val{color:var(--science)}.stat-pill.pps .val{color:var(--gold)}
-
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:var(--btn-h);min-width:48px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--fg);font-weight:600;font-size:.8rem;cursor:pointer;touch-action:manipulation;transition:all var(--trans);white-space:nowrap;user-select:none}
 .btn:active{transform:scale(.97)}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .btn.primary{border-color:var(--fat);background:linear-gradient(180deg,#3d1008,#2a0a04);color:var(--fat)}
@@ -98,26 +69,19 @@ main{
 .btn.science{border-color:var(--science);background:linear-gradient(180deg,#0d1e2e,#08121a);color:var(--science)}
 .btn.ghost{background:transparent;color:var(--fg-dim)}.btn.ghost:hover{background:var(--bg-card);color:var(--fg)}
 .btn.sm{height:32px;padding:0 10px;font-size:.7rem}.btn.lg{height:52px;padding:0 24px;font-size:1rem}.btn.block{width:100%}
-
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:var(--gap)}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
 .card-title{font-size:.8rem;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);font-weight:700}
-
 .grid{display:grid;gap:10px}.grid-1{grid-template-columns:1fr}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}
 @media (max-width:640px){.grid-3{grid-template-columns:repeat(2,1fr)}}@media (max-width:420px){.grid-2,.grid-3{grid-template-columns:1fr}}
-
 .progress{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:8px}.progress-bar{height:100%;border-radius:3px;transition:width .2s ease;background:linear-gradient(90deg,var(--fat),var(--gold))}
 .progress-bar.dna{background:linear-gradient(90deg,var(--dna),#4caf50)}.progress-bar.feed{background:linear-gradient(90deg,var(--feed),var(--gold))}.progress-bar.sci{background:linear-gradient(90deg,var(--science),#1e88e5)}
-
-.tooltip-host{position:relative}.tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--bg-elev);border:1px solid var(--border-bright);border-radius:var(--radius-sm);padding:10px 12px;font-size:.7rem;line-height:1.5;color:var(--fg);width:max-content;max-width:280px;z-index:2000;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s,visibility .15s;box-shadow:var(--shadow)}.tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--border-bright)}.tooltip-host:hover .tooltip,.tooltip-host:focus-within .tooltip,.tooltip-host:active .tooltip{opacity:1;visibility:visible}
-
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 .badge.locked{background:#3d2a1f;color:var(--muted);border:1px solid var(--border)}
 .badge.avail{background:var(--feed-dim);color:var(--feed);border:1px solid var(--feed)}
 .badge.maxed{background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold)}
 .badge.owned{background:var(--dna-dim);color:var(--dna);border:1px solid var(--dna)}
-
-/* ===== PIG SVG (Optimized) ===== */
+/* ===== PIG SVG ===== */
 .pig-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 0}
 #pigBtn{background:none;border:none;cursor:pointer;padding:0;line-height:1;filter:drop-shadow(0 12px 24px rgba(0,0,0,.4));transition:transform .1s cubic-bezier(.34,1.56,.64,1),filter .1s;user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center}
 #pigBtn:active{transform:scale(.95) rotate(-2deg);filter:drop-shadow(0 6px 12px rgba(0,0,0,.3))}
@@ -125,12 +89,10 @@ main{
 #pigSvg{width:clamp(100px,28vw,180px);height:auto;display:block}
 .pig-hint{text-align:center;margin-top:8px;font-size:.75rem;color:var(--muted)}
 .pig-hint kbd{background:var(--feed-dim);color:var(--feed);padding:2px 8px;border-radius:6px;font-family:var(--mono);font-size:.7em}
-
 @keyframes tailWag{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}}@keyframes breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.01)}}@keyframes blushPulse{0%,100%{opacity:.6}50%{opacity:1}}@keyframes nostrilFlare{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 #pigTail{transform-origin:100px 75px;animation:tailWag 2s ease-in-out infinite}#pigBody{animation:breathe 4s ease-in-out infinite}#pigHead{animation:breathe 4s ease-in-out infinite;transform-origin:64px 55px}#pigBlushL,#pigBlushR{animation:blushPulse 3s ease-in-out infinite}#pigNostrilL,#pigNostrilR{animation:nostrilFlare 4s ease-in-out infinite;transform-origin:center}#pigEyeL,#pigEyeR{transform-origin:center;transition:transform .1s ease-out}#pigEarL{transform-origin:40px 25px}#pigEarR{transform-origin:88px 25px}
 #pigBtn.fed #pigBody{animation:none;transform:scale(1.05)}#pigBtn.fed #pigHead{animation:none;transform:scale(1.08) translateY(-2px)}#pigBtn.fed #pigNostrilL,#pigBtn.fed #pigNostrilR{animation:none;transform:scale(1.5)}#pigBtn.fed #pigEarL{animation:earTwitch .3s ease-out}#pigBtn.fed #pigEarR{animation:earTwitch .3s ease-out}
 @keyframes earTwitch{0%{transform:rotate(0)}25%{transform:rotate(-20deg)}50%{transform:rotate(10deg)}75%{transform:rotate(-10deg)}100%{transform:rotate(0)}}
-
 /* ===== ITEM CARD ===== */
 .item-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:8px;position:relative;transition:border-color var(--trans),box-shadow var(--trans);min-height:160px}
 .item-card:hover{border-color:var(--border-bright);box-shadow:0 0 0 1px var(--border-bright)}
@@ -141,15 +103,11 @@ main{
 .item-main{flex:1;min-width:0}.item-name{font-weight:700;font-size:.9rem;color:var(--fg);margin-bottom:2px}.item-desc{font-size:.65rem;color:var(--muted);line-height:1.4}
 .item-stats{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.65rem;color:var(--fg-dim)}.item-stat{display:flex;align-items:center;gap:4px;background:var(--bg-elev);padding:3px 8px;border-radius:6px;border:1px solid var(--border)}.item-stat .lbl{color:var(--muted)}.item-stat .val{font-weight:700;font-family:var(--mono);color:var(--fg)}
 .item-effect{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.7rem}.item-effect .icon{font-size:.9rem}.item-effect .txt{flex:1;color:var(--fg-dim)}.item-effect .val{font-weight:700;color:var(--dna);font-family:var(--mono)}
-.item-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:4px}.item-cost{display:flex;align-items:center;gap:6px}.item-cost .cur{font-size:1.1rem}.item-cost .amt{font-weight:700;font-family:var(--mono);font-size:1rem;color:var(--gold)}.item-cost.feed .amt{color:var(--feed)}.item-cost.fat .amt{color:var(--fat)}.item-cost.dna .amt{color:var(--dna)}.item-cost.sci .amt{color:var(--science)}.item-cost.serum .amt{color:var(--serum)}
-.item-next{font-size:.6rem;color:var(--muted);font-family:var(--mono)}
-
-/* Market Table */
+.item-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:4px}.item-cost{display:flex;align-items:center;gap:6px}.item-cost .cur{font-size:1.1rem}.item-cost .amt{font-weight:700;font-family:var(--mono);font-size:1rem;color:var(--gold)}.item-cost.feed .amt{color:var(--feed)}.item-cost.fat .amt{color:var(--fat)}.item-cost.dna .amt{color:var(--dna)}.item-cost.sci .amt{color:var(--science)}.item-cost.serum .amt{color:var(--serum)}.item-next{font-size:.6rem;color:var(--muted);font-family:var(--mono)}
+/* Market, Portfolio, Breed, Toast, Modal, Achievements, Science, Settings, Hotkeys - Condensed */
 .market-table{width:100%;border-collapse:collapse;font-size:.75rem}.market-table th{text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:.6rem;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg)}.market-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}.market-table tr:last-child td{border-bottom:none}.market-table tr:hover td{background:var(--bg-elev)}.market-table .name{display:flex;align-items:center;gap:6px;font-weight:600}.market-table .price{font-family:var(--mono);font-weight:700;white-space:nowrap}.market-table .price.up{color:var(--fat)}.market-table .price.down{color:var(--dna)}.market-table .chg{font-family:var(--mono);font-size:.6rem;white-space:nowrap}.market-table .chg.up{color:var(--fat)}.market-table .chg.down{color:var(--dna)}.market-table .owned{color:var(--muted);font-family:var(--mono);white-space:nowrap}.market-table .act{display:flex;gap:3px}.market-table .btn{height:28px;padding:0 6px;font-size:.6rem}
-
-/* Portfolio, Breed, Toast, Modal, Achievements, Science, Settings, Hotkeys */
 .portfolio-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.75rem}.portfolio-item:last-child{border-bottom:none}.portfolio-info{display:flex;align-items:center;gap:6px}.portfolio-name{font-weight:600}.portfolio-qty{color:var(--muted);font-family:var(--mono);font-size:.7rem}.portfolio-val{font-weight:700;color:var(--gold);font-family:var(--mono);text-align:right}
-.breed-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);transition:all var(--trans)}.breed-card:hover{border-color:var(--border-bright);background:var(--bg-elev)}.breed-card.owned{background:var(--dna-dim);border-color:var(--dna)}.breed-main{display:flex;align-items:center;gap:10px;flex:1;min-width:0}.breed-icon{font-size:1.5rem;flex-shrink:0}.breed-txt{display:flex;flex-direction:column;gap:1px}.breed-name{font-weight:700;font-size:.85rem}.breed-desc{font-size:.6rem;color:var(--muted)}.breed-side{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}.breed-cost{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-weight:700;color:var(--dna);font-size:.8rem}
+.breed-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);transition:all var(--trans)}.breed-card:hover{border-color:var(--border-bright);background:var(--bg-elev)}.breed-card.owned{background:var(--dna-dim);border-color:var(--dna)}.breed-main{display:flex;align-items:center;gap:12px;flex:1;min-width:0}.breed-icon{font-size:1.5rem;flex-shrink:0}.breed-txt{display:flex;flex-direction:column;gap:1px}.breed-name{font-weight:700;font-size:.85rem}.breed-desc{font-size:.6rem;color:var(--muted)}.breed-side{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}.breed-cost{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-weight:700;color:var(--dna);font-size:.8rem}
 .toast-wrap{position:fixed;bottom:calc(var(--tab-h)+12px);left:12px;right:12px;display:flex;flex-direction:column-reverse;gap:6px;z-index:200;pointer-events:none}.toast{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:10px;transform:translateY(100px);opacity:0;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1) forwards;pointer-events:auto;max-width:calc(100vw-24px)}.toast.ok{border-left:3px solid #4caf50}.toast.err{border-left:3px solid #ef5350}.toast.wrn{border-left:3px solid #ff9800}.toast.inf{border-left:3px solid #29b6f6}@keyframes toastIn{to{transform:none;opacity:1}}.toast-ic{font-size:1rem;flex-shrink:0;margin-top:1px}.toast-c{flex:1}.toast-tt{font-weight:700;font-size:.8rem;margin-bottom:1px}.toast-msg{font-size:.7rem;color:var(--fg-dim);line-height:1.4}.toast-x{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;padding:12px}.modal-overlay.open{opacity:1;visibility:visible}.modal{background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;max-width:90vw;width:100%;max-height:80vh;overflow:auto;transform:scale(.95);transition:transform .2s cubic-bezier(.34,1.56,.64,1)}.modal-overlay.open .modal{transform:none}.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}.modal-tt{font-weight:700;font-size:1rem}.modal-x{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;padding:2px}.modal-bd{padding:18px}.modal-ft{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid var(--border)}
 .prestige-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}.p-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}.p-card .ic{font-size:1.3rem;margin-bottom:6px}.p-card .vl{font-size:1.5rem;font-weight:700;font-family:var(--mono);color:var(--gold);line-height:1}.p-card .lb{font-size:.6rem;color:var(--muted);margin-top:3px;text-transform:uppercase}
@@ -158,12 +116,11 @@ main{
 .sci-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;display:flex;flex-direction:column;gap:6px;text-align:center}.sci-card.locked{opacity:.4}.sci-ic{font-size:1.3rem}.sci-tt{font-weight:600;font-size:.8rem}.sci-ds{font-size:.6rem;color:var(--muted);line-height:1.3;flex:1}.sci-lv{font-size:.65rem;color:var(--science);font-family:var(--mono)}.sci-cst{font-size:.75rem;font-weight:700;color:var(--science);font-family:var(--mono)}.sci-btn{margin-top:auto;width:100%}
 .set-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}.set-row:last-child{border-bottom:none}.set-lbl{display:flex;flex-direction:column;gap:1px}.set-tt{font-weight:600;font-size:.85rem}.set-ds{font-size:.6rem;color:var(--muted)}.tgl{position:relative;width:44px;height:26px}.tgl input{opacity:0;width:0;height:0}.tgl-sld{position:absolute;inset:0;background:#333;border-radius:26px;transition:.2s;cursor:pointer}.tgl-sld::before{content:"";position:absolute;left:1px;top:1px;width:24px;height:24px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}.tgl input:checked+.tgl-sld{background:var(--fat)}.tgl input:checked+.tgl-sld::before{transform:translateX(18px)}
 .hk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:5px;font-size:.6rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}.hk{background:var(--bg);padding:5px 6px;border-radius:5px;text-align:center;font-family:var(--mono)}.hk kbd{background:var(--feed-dim);color:var(--feed);padding:1px 4px;border-radius:3px;font-size:.65em}
-
-/* Scrollbar */
 ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--muted)}
 </style>
 </head>
 <body>
+
 <header>
   <h1 style="font-size:clamp(1rem,3vw,1.2rem);font-weight:700;background:linear-gradient(90deg,var(--fat),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent">🐷 Империя Свиней</h1>
   <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -176,12 +133,11 @@ main{
 </header>
 <main>
   <div id="app-root">
-    <!-- PANELS -->
     <div class="tab-panel active" id="p-farm" role="tabpanel" aria-labelledby="t-farm">
       <div class="pig-wrap">
         <button id="pigBtn" class="tooltip-host" aria-label="Покормить">
           <svg id="pigSvg" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><defs><filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity=".25"/></filter><linearGradient id="bG" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffd9e3"/><stop offset="60%" stop-color="#ffb3c6"/><stop offset="100%" stop-color="#f08aa0"/></linearGradient><linearGradient id="dG" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f08aa0"/><stop offset="100%" stop-color="#d86078"/></linearGradient><linearGradient id="sG" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffd9e3"/><stop offset="100%" stop-color="#ffb3c6"/></linearGradient></defs><path id="pigTail" d="M102 78 Q118 65 115 90 Q110 100 105 85" stroke="url(#bG)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#sh)"/><g id="pigBody" filter="url(#sh)"><ellipse cx="64" cy="90" rx="40" ry="28" fill="url(#bG)"/><ellipse cx="90" cy="105" rx="12" ry="18" fill="url(#dG)"/><ellipse cx="40" cy="105" rx="12" ry="18" fill="url(#bG)"/></g><g id="pigHead" filter="url(#sh)"><ellipse cx="64" cy="50" rx="32" ry="30" fill="url(#bG)"/><path id="pigEarL" d="M38 28 Q28 10 42 16 Q50 22 44 34 Z" fill="url(#dG)" stroke="#d86078" stroke-width=".5"/><path id="pigEarR" d="M90 28 Q100 10 86 16 Q78 22 84 34 Z" fill="url(#dG)" stroke="#d86078" stroke-width=".5"/><path d="M40 26 Q36 16 44 20 Q48 23 44 30 Z" fill="#ffb3c6" opacity=".5"/><path d="M88 26 Q92 16 84 20 Q80 23 84 30 Z" fill="#ffb3c6" opacity=".5"/><ellipse cx="64" cy="56" rx="18" ry="14" fill="url(#sG)"/><ellipse id="pigNostrilL" cx="56" cy="54" rx="3.5" ry="4" fill="#c85060"/><ellipse id="pigNostrilR" cx="72" cy="54" rx="3.5" ry="4" fill="#c85060"/><ellipse cx="55" cy="53" rx="1" ry="1" fill="#ffd9e3" opacity=".8"/><ellipse cx="71" cy="53" rx="1" ry="1" fill="#ffd9e3" opacity=".8"/><path d="M64 64 Q64 68 58 68 M64 64 Q64 68 70 68" stroke="#c85060" stroke-width="2" fill="none" stroke-linecap="round"/><g id="pigEyes"><ellipse id="pigEyeL" cx="52" cy="38" rx="7" ry="9" fill="#2d1a1a"/><ellipse cx="50" cy="36" rx="3" ry="4" fill="#fff"/><ellipse cx="53" cy="39" rx="1.5" ry="1.5" fill="#fff" opacity=".5"/><ellipse id="pigEyeR" cx="76" cy="38" rx="7" ry="9" fill="#2d1a1a"/><ellipse cx="74" cy="36" rx="3" ry="4" fill="#fff"/><ellipse cx="77" cy="39" rx="1.5" ry="1.5" fill="#fff" opacity=".5"/></g><g id="pigEyelids" style="pointer-events:none"><path id="lidL" d="M45 33 Q52 30 59 33 Q52 38 45 33" fill="url(#bG)" transform="scale(1,0)" transform-origin="52 38" style="transition:transform .1s"/><path id="lidR" d="M69 33 Q76 30 83 33 Q76 38 69 33" fill="url(#bG)" transform="scale(1,0)" transform-origin="76 38" style="transition:transform .1s"/></g><ellipse id="pigBlushL" cx="42" cy="50" rx="8" ry="4" fill="#ff8fa3" opacity=".6" filter="url(#sh)"/><ellipse id="pigBlushR" cx="86" cy="50" rx="8" ry="4" fill="#ff8fa3" opacity=".6" filter="url(#sh)"/></g></svg>
-          <div class="tooltip"><div class="tooltip-title">🐷 Главная Свинья</div><div class="tooltip-row"><span class="key">Действие</span><span class="val">Тап / Кнопка ниже</span></div><div class="tooltip-row"><span class="key">Даёт</span><span class="val" id="ttClick">1</span> 🌽</div><div class="tooltip-row"><span class="key">Кликов</span><span class="val mono" id="ttTotal">0</span></div><div class="tooltip-divider"></div><div class="tooltip-note">Корм нужен стойлам</div></div>
+          <div class="tooltip"><div class="tooltip-title">🐷 Главная Свинья</div><div class="tooltip-row"><span class="key">Действие</span><span class="val">Тап / Кнопка меню</span></div><div class="tooltip-row"><span class="key">Даёт</span><span class="val" id="ttClick">1</span> 🌽</div><div class="tooltip-row"><span class="key">Кликов</span><span class="val mono" id="ttTotal">0</span></div><div class="tooltip-divider"></div><div class="tooltip-note">Корм нужен стойлам</div></div>
         </button>
         <p class="pig-hint">Тапни свинью или жми <b>🐷 Кормить</b> в меню Telegram</p>
       </div>
@@ -227,7 +183,6 @@ main{
   </div>
 </main>
 
-<!-- TAB BAR -->
 <div class="tab-bar" id="tabBar" role="tablist">
   <button class="tab-btn active" id="t-farm" data-p="farm" role="tab" aria-selected="true" aria-controls="p-farm"><span class="icon">🐷</span><span>Ферма</span></button>
   <button class="tab-btn" id="t-genes" data-p="genes" role="tab" aria-controls="p-genes"><span class="icon">🧬</span><span>Гены</span></button>
@@ -240,211 +195,441 @@ main{
 
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- MODALS -->
 <div class="modal-overlay" id="mPrestige" role="dialog" aria-modal="true" aria-labelledby="mPrTitle"><div class="modal"><div class="modal-hd"><h2 class="modal-tt" id="mPrTitle">☄️ Подтверждение</h2><button class="modal-x" id="mPrClose">&times;</button></div><div class="modal-bd" style="text-align:center"><div style="font-size:3rem;margin-bottom:12px">🐷💥🧬</div><p style="margin-bottom:8px">Получишь <b class="mono" style="color:var(--dna);font-size:1.1rem" id="mPrGain">0</b> ДНК.</p><p style="color:var(--muted);margin-bottom:16px">Ферма сгорит.</p><div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:left;font-size:.7rem;color:var(--fg-dim)"><b>Сохранится:</b><br>• ДНК 🧬, Гены 🧬<br>• Селекция 🐷<br>• Биореакторы ⚗️<br>• Наука 🔬, Достижения 🏆</div></div><div class="modal-ft"><button class="btn ghost" id="mPrCancel">Отмена</button><button class="btn danger lg" id="mPrConfirm">ДА, СЖИГАЕМ</button></div></div></div>
 <div class="modal-overlay" id="mOffline" role="dialog" aria-modal="true"><div class="modal" style="text-align:center"><div style="font-size:3rem;margin-bottom:12px;animation:float 2s ease-in-out infinite">🛸</div><h2 class="modal-tt">С возвращением!</h2><p style="color:var(--muted);margin-bottom:16px">Офлайн прогресс:</p><div class="offline-stats"><div class="o-stat"><div class="lb">Время</div><div class="vl mono" id="oTime">0</div></div><div class="o-stat"><div class="lb">Жир</div><div class="vl mono" id="oFat">0</div></div><div class="o-stat"><div class="lb">Корм</div><div class="vl mono" id="oFeed">0</div></div><div class="o-stat"><div class="lb">Наука</div><div class="vl mono" id="oSci">0</div></div></div><button class="btn primary lg block" id="mOffClose">Продолжить</button></div></div>
 
-<script>
-/* ===== TELEGRAM INIT ===== */
-const Tg = window.Telegram.WebApp;
-Tg.expand(); Tg.ready();
-const Haptic = Tg.HapticFeedback;
-const Cloud = Tg.CloudStorage;
+<script nonce="r4nd0mNonce123">
+/* ===== 1. TELEGRAM INIT & MOCK ===== */
+let Tg = window.Telegram?.WebApp;
+const IS_TELEGRAM = !!Tg;
 
-// Theme Sync
-function applyTheme(){const p=Tg.themeParams;if(!p)return;const r=document.documentElement;r.style.setProperty('--bg',p.bg_color||'#1a120d');r.style.setProperty('--fg',p.text_color||'#fff8f0');r.style.setProperty('--bg-card',p.secondary_bg_color||'#2d1f15');r.style.setProperty('--border',p.section_bg_color||'#4a3528');r.style.setProperty('--gold',p.button_color||'#ffb300');r.style.setProperty('--fat',p.button_color||'#e53935');r.style.setProperty('--feed',p.button_color||'#ffd54f');}
-applyTheme(); Tg.onEvent('themeChanged',applyTheme);
-
-// MainButton
-Tg.MainButton.setText('🐷 Кормить'); Tg.MainButton.show();
-Tg.MainButton.onClick(()=>G.clickPig({clientX:innerWidth/2,clientY:100}));
-
-// BackButton
-function updBack(){const open=document.querySelector('.modal-overlay.open');if(open){Tg.BackButton.show();Tg.BackButton.onClick(()=>{if(document.getElementById('mPrestige').classList.contains('open'))closeM('mPrestige');else if(document.getElementById('mOffline').classList.contains('open'))closeM('mOffline');});}else{Tg.BackButton.hide();Tg.BackButton.onClick(()=>Tg.close());}}
-// Haptics
-const H=(t='light')=>{if(Haptic)Haptic.impactOccurred(t);else if(navigator.vibrate)navigator.vibrate(t==='heavy'?[100,50,100]:10);};
-const HN=(t)=>Haptic?.notificationOccurred(t);
-
-// CloudStorage Wrapper
-const CS={get:(k)=>new Promise(r=>Cloud.getItem(k,(e,v)=>r(e?null:JSON.parse(v||'null')))),set:(k,v)=>new Promise(r=>Cloud.setItem(k,JSON.stringify(v),()=>r())),remove:(k)=>new Promise(r=>Cloud.removeItem(k,()=>r()))};
-
-/* ===== GAME DATA ===== */
-const D={stalls:[{id:'piglet',n:'Поросёнок',i:'🐖',d:'Маленький, съедает мало.',c:10,f:.1,ft:0,ul:0,cl:'#ff8fa3'},{id:'sow',n:'Свинка',i:'🐷',d:'Стабильный доход.',c:100,f:.5,ft:10,ul:10,cl:'#ff8fa3'},{id:'boar',n:'Кабан',i:'🐗',d:'Жирный, ест много.',c:1000,f:3,ft:100,ul:50,cl:'#c62828'},{id:'ind',n:'Пром. гибрид',i:'🏭',d:'Макс. жир. Ест тонны.',c:10000,f:20,ft:500,ul:200,cl:'#e53935'},{id:'bio',n:'Биотех',i:'🧬',d:'Геномодифицированная.',c:100000,f:100,ft:2000,ul:1000,cl:'#81c784'},{id:'qu',n:'Квантовая',i:'⚛️',d:'Суперпозиция жира.',c:1000000,f:500,ft:10000,ul:5000,cl:'#ffb300'}],
-genes:[{id:'ap',n:'Аппетит',i:'🍽️',d:'Меньше корма на жир.',c:1,cm:2,ml:50,e:.05,t:'fe',cur:'dna'},{id:'mt',n:'Обмен веществ',i:'⚡',d:'Жир эффективнее.',c:2,cm:2.5,ml:50,e:.04,t:'fat',cur:'dna'},{id:'fr',n:'Плодовитость',i:'👶',d:'Бонус ДНК при престиже.',c:5,cm:3,ml:30,e:.1,t:'dnaB',cur:'dna'},{id:'mq',n:'Качество мяса',i:'🥩',d:'Цена жира выше.',c:10,cm:3,ml:20,e:.05,t:'mkt',cur:'dna'},{id:'hr',n:'Выносливость',i:'🛡️',d:'Меньше потерь.',c:20,cm:4,ml:10,e:.15,t:'surv',cur:'dna'},{id:'in',n:'Интеллект',i:'🧠',d:'Экономят корм.',c:50,cm:5,ml:10,e:.08,t:'fe',cur:'dna'},{id:'qu',n:'Квант. запутанность',i:'⚛️',d:'Шанс x2 доход.',c:100,cm:10,ml:5,e:.02,t:'qu',cur:'dna'}],
-facts:[{id:'sm',n:'Коптильня',i:'🏭',d:'Жир→Колбаса.',c:1000,r:1,in:'fat',out:'saus',ul:100,cur:'fat',sci:.1},{id:'cn',n:'Консервы',i:'🥫',d:'Колбаса→Консервы.',c:50000,r:.5,in:'saus',out:'can',ul:500,cur:'fat',sci:.5},{id:'sl',n:'Лаборатория',i:'🧪',d:'Консервы→Деликатесы.',c:1e6,r:.2,in:'can',out:'del',ul:2000,cur:'fat',sci:2},{id:'bp',n:'Биореактор',i:'⚗️',d:'Деликатесы→Сыворотка.',c:1e8,r:.05,in:'del',out:'ser',ul:10000,cur:'fat',sci:10}],
-store:[{id:'fat',n:'Жир',i:'🥩',cl:'var(--fat)'},{id:'saus',n:'Колбаса',i:'🌭',cl:'var(--gold)'},{id:'can',n:'Консервы',i:'🥫',cl:'#ff9800'},{id:'del',n:'Деликатесы',i:'🍖',cl:'#e91e63'},{id:'ser',n:'Сыворотка',i:'💉',cl:'var(--science)'}],
-bios:[{id:'b1',n:'Сыворотка роста',i:'💉',d:'Бонус ДНК.',c:10,cur:'ser',e:{t:'dnaB',v:.1},ml:100},{id:'b2',n:'Сыворотка аппетита',i:'💉',d:'Эфф. корма.',c:20,cur:'ser',e:{t:'fe',v:.05},ml:50},{id:'b3',n:'Сыворотка жирности',i:'💉',d:'Произв. жира.',c:50,cur:'ser',e:{t:'fat',v:.08},ml:30},{id:'b4',n:'Квант. сыворотка',i:'💉',d:'Шанс x2 всё.',c:200,cur:'ser',e:{t:'qu',v:.01},ml:10}],
-sciUps:[{id:'a1',n:'Автокормушка',i:'🤖',d:'Автоклик.',c:100,cm:3,ml:10,e:.1,t:'ac',cur:'sci'},{id:'a2',n:'Опт. корма',i:'🌽',d:'Глоб. эофф. корма.',c:500,cm:4,ml:20,e:.05,t:'fe',cur:'sci'},{id:'a3',n:'Жирная физ.',i:'🥩',d:'Глоб. эофф. жира.',c:2000,cm:5,ml:15,e:.08,t:'fat',cur:'sci'},{id:'a4',n:'Офлайн %',i:'🛸',d:'% скорости офлайн.',c:10000,cm:10,ml:10,e:.1,t:'off',cur:'sci'},{id:'a5',n:'Рынок гений',i:'📈',d:'Прибыль рынка.',c:50000,cm:10,ml:5,e:.2,t:'mkt',cur:'sci'},{id:'a6',n:'Ген. усил.',i:'🧬',d:'Множ. ДНК.',c:1e6,cm:20,ml:3,e:.5,t:'dnaM',cur:'sci'}],
-market:[{id:'corn',n:'Кукуруза',i:'🌽',bp:10,v:.1,u:'т'},{id:'soy',n:'Соя',i:'🌱',bp:50,v:.15,u:'т'},{id:'pig',n:'Поросени',i:'🐖',bp:500,v:.25,u:'шт'},{id:'fatM',n:'Свиной жир',i:'🥩',bp:2000,v:.3,u:'т'},{id:'land',n:'Земля',i:'🏞️',bp:50000,v:.05,u:'га'}],
-breed:[{id:'lr',n:'Ландрейс',i:'🐷',d:'Эофф. корма +20%.',c:10,cur:'dna',e:{fe:.2}},{id:'lw',n:'Ларж-Уайт',i:'🐷',d:'Произв. жира +25%.',c:25,cur:'dna',e:{fat:.25}},{id:'dr',n:'Дюрок',i:'🐗',d:'Цена жира +30%.',c:50,cur:'dna',e:{mkt:.3}},{id:'mg',n:'Мангалица',i:'🐷',d:'Выживаемость +50%.',c:100,cur:'dna',e:{surv:.5}},{id:'ib',n:'Иберийская',i:'🐷',d:'Эофф. корма +40%.',c:200,cur:'dna',e:{fe:.4}},{id:'gp',n:'Свинный Бог',i:'🐷👑',d:'Все бонусы ×2.',c:1000,cur:'dna',e:{all:2}}],
-ach:[{id:'c1',n:'Первый хряк',d:'1 клик',c:s=>s.cl>=1,r:'+1% клик',rv:.01,t:'cl',cat:'gen'},{id:'c2',n:'Хрякатель',d:'100 кликов',c:s=>s.cl>=100,r:'+5% клик',rv:.05,t:'cl',cat:'gen'},{id:'c3',n:'Профи',d:'10к кликов',c:s=>s.cl>=1e4,r:'+20% клик',rv:.2,t:'cl',cat:'gen'},{id:'s1',n:'Строитель',d:'1 стойло',c:s=>Object.values(s.st).some(v=>v>0),r:'Стойла +5%',rv:.05,t:'st',cat:'farm'},{id:'s2',n:'Свинарник',d:'100 стойл',c:s=>Object.values(s.st).reduce((a,b)=>a+b,0)>=100,r:'Стойла +10%',rv:.1,t:'st',cat:'farm'},{id:'f1',n:'Миллионер',d:'1М жира',c:s=>s.fat>=1e6,r:'Жир +10%',rv:.1,t:'fat',cat:'farm'},{id:'f2',n:'Миллиардер',d:'1Мрд жира',c:s=>s.fat>=1e9,r:'Жир +25%',rv:.25,t:'fat',cat:'farm'},{id:'p1',n:'Первый Апок.',d:'1 престиж',c:s=>s.pr>=1,r:'ДНК +25%',rv:.25,t:'dna',cat:'pr'},{id:'p2',n:'Цикличный',d:'10 престижей',c:s=>s.pr>=10,r:'ДНК +50%',rv:.5,t:'dna',cat:'pr'},{id:'g1',n:'Генетик',d:'Ген 10 ур.',c:s=>Object.values(s.ge).some(v=>v>=10),r:'Гены +10%',rv:.1,t:'ge',cat:'gen'},{id:'m1',n:'Волк Уолл',d:'1М на рынке',c:s=>s.mktP>=1e6,r:'Рынок +20%',rv:.2,t:'mkt',cat:'mkt'},{id:'sc1',n:'Учёный',d:'1000 науки',c:s=>s.sci>=1e3,r:'Наука +15%',rv:.15,t:'sci',cat:'sci'}]
-};
-
-/* ===== STATE & REACTIVE SYSTEM ===== */
-const S={feed:0,fat:0,tFat:0,dna:0,pr:0,sci:0,tSci:0,st:{piglet:0,sow:0,boar:0,ind:0,bio:0,qu:0},ge:{ap:0,mt:0,fr:0,mq:0,hr:0,in:0,qu:0},br:{},fc:{sm:0,cn:0,sl:0,bp:0},fs:{fat:0,saus:0,can:0,del:0,ser:0},bi:{b1:0,b2:0,b3:0,b4:0},su:{a1:0,a2:0,a3:0,a4:0,a5:0,a6:0},mk:{corn:0,soy:0,pig:0,fatM:0,land:0},mp:{},mktP:0,clP:1,auto:false,cl:0,ach:{},ab:{cl:0,st:0,fat:0,dna:0,ge:0,mkt:0,fe:0,fatE:0,surv:0,dnaB:0,mktP:0,qu:0,all:0,ac:0,off:0,mktP2:0,dnaM:0},stt:{tFeed:0,tSt:0,tGe:0,tFc:0,tSc:0,start:Date.now()},set:{vib:true,sound:false,red:false,hc:false,autoS:true,offN:true}};
-
-// Dirty flags for rendering
-const DIRTY={all:true,stats:true,stalls:true,genes:true,breed:true,facts:true,bios:true,store:true,market:true,port:true,sci:true,sciP:true,pr:true,ach:true,statsT:true,set:true};
-
-// Reactive Proxy (Simple)
-const State=new Proxy(S,{set(o,k,v){o[k]=v;return true}});
-
-/* ===== UTILS ===== */
-const fmt=n=>{if(!isFinite(n))return'∞';const a=Math.abs(n);if(a<1e3)return n.toFixed(a<10&&a%1?2:0);if(a<1e6)return(n/1e3).toFixed(2)+'K';if(a<1e9)return(n/1e6).toFixed(2)+'M';if(a<1e12)return(n/1e9).toFixed(2)+'B';if(a<1e15)return(n/1e12).toFixed(2)+'T';const e=Math.floor(Math.log10(a));return(n/Math.pow(10,e)).toFixed(2)+'e'+e;};
-const fmtT=s=>{if(s<60)return s.toFixed(1)+'с';if(s<3600)return Math.floor(s/60)+'м '+(s%60).toFixed(0)+'с';if(s<86400)return Math.floor(s/3600)+'ч '+Math.floor((s%3600)/60)+'м';return Math.floor(s/86400)+'д '+Math.floor((s%86400)/3600)+'ч';};
-const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);
-const el=(t,a={},c=[])=>{const e=document.createElement(t);Object.entries(a).forEach(([k,v])=>{if(k==='cls')e.className=v;else if(k==='html')e.innerHTML=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v);});c.forEach(ch=>e.appendChild(ch));return e;};
-const H=(t='light')=>Haptic?.impactOccurred(t)||navigator.vibrate?.(t==='heavy'?[100,50,100]:10);
-const HN=(t)=>Haptic?.notificationOccurred(t);
-const toast=(m,t='inf')=>{const w=$('#toastWrap');const d=el('div',{cls:`toast ${t}`,html:`<span class="toast-ic">${{inf:'ℹ️',ok:'✅',err:'❌',wrn:'⚠️'}[t]}</span><div class="toast-c"><div class="toast-tt">${{inf:'Инфо',ok:'Успех',err:'Ошибка',wrn:'Внимание'}[t]}</div><div class="toast-msg">${m}</div></div><button class="toast-x" onclick="this.parentElement.remove()">&times;</button>`});w.appendChild(d);setTimeout(()=>{d.style.animation='toastIn .3s reverse forwards';setTimeout(()=>d.remove(),300)},4000);HN(t==='err'?'error':t==='ok'?'success':'warning');};
-const part=(x,y,ch,clr)=>{for(let i=0;i<5;i++){const p=el('div',{style:`position:fixed;left:${x}px;top:${y}px;z-index:9999;pointer-events:none;font-size:1.2rem;color:${clr};animation:particleFly .8s cubic-bezier(.22,1,.36,1) forwards`});p.textContent=ch;const a=Math.random()*Math.PI*2,d=50+Math.random()*50;p.style.setProperty('--tx',Math.cos(a)*d+'px');p.style.setProperty('--ty',Math.sin(a)*d+'px');document.body.appendChild(p);setTimeout(()=>p.remove(),800);}};
-
-/* ===== CALCULATIONS (Pure Functions) ===== */
-const C={
-  stallCost:(s,c)=>Math.floor(s.c*Math.pow(1.15,c)),
-  stallFeed:(s)=>s.f/(1+totFE()),
-  stallFat:(s)=>s.ft*totFatE(),
-  totFE:()=>{let m=1+S.ab.fe;if(S.br.lr)m*=1.2;if(S.br.ib)m*=1.4;if(S.su.a2)m*=1+S.su.a2*.05;m*=1+S.ab.all;return m-1;},
-  totFatE:()=>{let m=1+S.ab.fatE;if(S.br.lw)m*=1.25;if(S.su.a3)m*=1+S.su.a3*.08;m*=1+S.ab.all;return m;},
-  totFPS:()=>D.stalls.reduce((s,x)=>s+C.stallFat(x)*S.st[x.id],0),
-  clickVal:()=>S.clP*(1+S.ab.cl)*(1+S.ab.all),
-  geneCost:(g)=>Math.floor(g.c*Math.pow(g.cm,S.ge[g.id])),
-  factCost:(f)=>Math.floor(f.c*Math.pow(1.2,S.fc[f.id])),
-  bioCost:(b)=>Math.floor(b.c*Math.pow(2,S.bi[b.id])),
-  sciCost:(s)=>Math.floor(s.c*Math.pow(s.cm,S.su[s.id])),
-  quCh:()=>S.ab.qu+(S.ge.qu||0)*.02+(S.bi.b4||0)*.01+(S.su.a6||0)*.01,
-  prGain:()=>{if(S.tFat<1e9)return 0;const b=Math.floor(Math.sqrt(S.tFat/1e9));const m=1+S.ab.dna+(S.br.gp?1:0)+(S.su.a6||0)*.5;return Math.floor(b*m);},
-  prBon:()=>{const d=S.dna;return{fe:1+d*.02,fat:1+d*.015,dna:d*.5,cl:1+d*.01};}
-};
-
-/* ===== SAVE/LOAD (CloudStorage + Local Fallback) ===== */
-const KEY='tgPigEmpireV1';
-async function load(){try{const v=await CS.get(KEY);if(v){Object.assign(S,v);D.stalls.forEach(s=>{if(S.st[s.id]===undefined)S.st[s.id]=0;});D.genes.forEach(g=>{if(S.ge[g.id]===undefined)S.ge[g.id]=0;});D.facts.forEach(f=>{if(S.fc[f.id]===undefined)S.fc[f.id]=0;});D.bios.forEach(b=>{if(S.bi[b.id]===undefined)S.bi[b.id]=0;});D.sciUps.forEach(s=>{if(S.su[s.id]===undefined)S.su[s.id]=0;});D.market.forEach(m=>{if(S.mp[m.id]===undefined)S.mp[m.id]=m.bp;});applyAB();}}catch(e){console.warn('Cloud load fail',e);localFallbackLoad();}calcOff();renderAll();}
-async function save(){S.lastSave=Date.now();try{await CS.set(KEY,S);}catch(e){localStorage.setItem(KEY,JSON.stringify(S));}}
-function localFallbackLoad(){const v=localStorage.getItem(KEY);if(v){try{const p=JSON.parse(v);Object.assign(S,p);applyAB();}catch(e){}}}
-function applyAB(){S.ab={cl:0,st:0,fat:0,dna:0,ge:0,mkt:0,fe:0,fatE:0,surv:0,dnaB:0,mktP:0,qu:0,all:0,ac:0,off:0,mktP2:0,dnaM:0};D.ach.forEach(a=>{if(S.ach[a.id]){const v=a.rv;switch(a.t){case'cl':S.ab.cl+=v;break;case'st':S.ab.st+=v;break;case'fat':S.ab.fat+=v;break;case'dna':S.ab.dna+=v;break;case'ge':S.ab.ge+=v;break;case'mkt':S.ab.mkt+=v;break;case'sci':S.ab[a.e.t]+=v;break;}}});}
-
-/* ===== OFFLINE ===== */
-function calcOff(){const d=Date.now()-S.lastSave;if(d<60000)return;const fps=C.totFPS();if(fps<=0)return;const g=fps*d/1000;S.fat+=g;S.tFat+=g;const sci=D.facts.reduce((s,f)=>s+(S.fc[f.id]||0)*f.sci*d/1000,0);S.sci+=sci;S.tSci+=sci;S.offProg={t:d,fat:g,sci:sci};}
-/* ===== ACTIONS ===== */
-const G={
-  clickPig(e){const v=C.clickVal();S.feed+=v;S.stt.tFeed+=v;S.cl++;const b=$('#pigBtn');b.classList.add('fed');setTimeout(()=>b.classList.remove('fed'),120);if(e){part(e.clientX,e.clientY,'🌽','#ffd54f');H('light');}mark('stats');},
-  buyStall(id,max){const s=D.stalls.find(x=>x.id===id);let b=0;while(true){const c=C.stallCost(s,S.st[id]);if(!can('fat',c))break;pay('fat',c);S.st[id]++;S.stt.tSt++;b++;if(!max)break;}if(b){toast(`Куплено ${s.n}: ${fmt(b)}`,'ok');H('medium');markAll();}},
-  buyGene(id){const g=D.genes.find(x=>x.id===id);if(S.ge[id]>=g.ml)return toast('Макс','wrn');const c=C.geneCost(g);if(!can('dna',c))return toast('Нет ДНК','err');pay('dna',c);S.ge[id]++;S.stt.tGe++;toast(`${g.n} → ${S.ge[id]}`,'ok');H('light');mark('genes');},
-  buyBreed(id){const b=D.breed.find(x=>x.id===id);if(S.br[id])return toast('Есть','wrn');if(!can('dna',b.c))return toast('Нет ДНК','err');pay('dna',b.c);S.br[id]=true;toast(`Порода: ${b.n}!`,'ok');H('heavy');mark('breed');},
-  buyFact(id){const f=D.facts.find(x=>x.id===id);const c=C.factCost(f);if(!can('fat',c))return toast('Нет жира','err');pay('fat',c);S.fc[id]++;S.stt.tFc++;toast(`${f.n}!`,'ok');H('medium');mark('facts');},
-  buyBio(id){const b=D.bios.find(x=>x.id===id);if(S.bi[id]>=b.ml)return toast('Макс','wrn');const c=C.bioCost(b);if(!can('ser',c))return toast('Нет сыворотки','err');pay('ser',c);S.bi[id]++;toast(`${b.n} → ${S.bi[id]}`,'ok');H('light');mark('bios');},
-  buySci(id){const s=D.sciUps.find(x=>x.id===id);if(S.su[id]>=s.ml)return toast('Макс','wrn');const c=C.sciCost(s);if(!can('sci',c))return toast('Нет науки','err');pay('sci',c);S.su[id]++;S.stt.tSc++;toast(`${s.n} → ${S.su[id]}`,'ok');H('light');mark('sci');},
-  buyMkt(id,n=1){const m=D.market.find(x=>x.id===id);const p=S.mp[id];const c=p*n;if(!can('fat',c))return toast('Нет жира','err');pay('fat',c);S.mk[id]=(S.mk[id]||0)+n;toast(`Куплено ${m.n} x${n}`,'ok');H('light');mark('market');},
-  sellMkt(id,n=1){const m=D.market.find(x=>x.id===id);const h=S.mk[id]||0;if(h<n)return toast('Нет товара','err');const p=S.mp[id];const mul=1+S.ab.mktP+(S.br.dr?.3:0)+(S.su.a5||0)*.2;const g=p*n*mul;S.fat+=g;S.mktP+=g;S.mk[id]-=n;toast(`Продано ${m.n} x${n}`,'ok');H('medium');mark('market');},
-  sellAll(id){const h=S.mk[id]||0;if(h)G.sellMkt(id,h);},
-  prestige(){const g=C.prGain();if(g<=0)return;if(!confirm(`Сжечь за ${fmt(g)} ДНК?`))return;S.dna+=g;S.pr++;S.feed=0;S.fat=0;S.tFat=0;S.st={piglet:0,sow:0,boar:0,ind:0,bio:0,qu:0};S.fc={sm:0,cn:0,sl:0,bp:0};S.fs={fat:0,saus:0,can:0,del:0,ser:0};S.mk={corn:0,soy:0,pig:0,fatM:0,land:0};S.mp={};D.market.forEach(m=>S.mp[m.id]=m.bp);S.mktP=0;S.clP=1;applyAB();toast(`Апокалипсис! +${fmt(g)} ДНК`,'ok');H('heavy');HN('success');closeM('mPrestige');markAll();save();},
-  toggleAuto(){S.auto=!S.auto;$('#autoBtn').textContent=S.auto?'🤖 Авто: ВКЛ':'🤖 Авто: ВЫКЛ';$('#autoBtn').className=S.auto?'btn secondary sm':'btn ghost sm';toast(S.auto?'Авто ВКЛ':'Авто ВЫКЛ',S.auto?'ok':'inf');},
-  export(){const b=new Blob([JSON.stringify(S)],{type:'application/json'});const u=URL.createObjectURL(b);const a=el('a',{href:u,download:'pig-save.json'});a.click();URL.revokeObjectURL(u);toast('Экспорт','ok');},
-  import(){const i=el('input',{type:'file',accept:'.json'});i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const p=JSON.parse(ev.target.result);Object.assign(S,p);applyAB();markAll();toast('Импорт','ok');}catch(err){toast('Ошибка','err');}};r.readAsText(f);};i.click();},
-  hardR(){if(confirm('УДАЛИТЬ ВСЁ?')){CS.remove(KEY);localStorage.removeItem(KEY);location.reload();}}
-};
-const can=(c,v)=>{if(c==='fat')return S.fat>=v;if(c==='feed')return S.feed>=v;if(c==='dna')return S.dna>=v;if(c==='ser')return S.fs.ser>=v;if(c==='sci')return S.sci>=v;return false;};
-const pay=(c,v)=>{if(c==='fat')S.fat-=v;else if(c==='feed')S.feed-=v;else if(c==='dna')S.dna-=v;else if(c==='ser')S.fs.ser-=v;else if(c==='sci')S.sci-=v;};
-const mark=(k)=>{if(k==='all'||!k)Object.keys(DIRTY).forEach(x=>DIRTY[x]=true);else if(DIRTY[k]!==undefined)DIRTY[k]=true;};
-const markAll=()=>Object.keys(DIRTY).forEach(x=>DIRTY[x]=true);
-
-/* ===== RENDER ENGINE (Targeted Updates) ===== */
-function renderAll(){if(DIRTY.stats)renderStats();if(DIRTY.stalls)renderStalls();if(DIRTY.genes)renderGenes();if(DIRTY.breed)renderBreed();if(DIRTY.facts)renderFacts();if(DIRTY.bios)renderBios();if(DIRTY.store)renderStore();if(DIRTY.market)renderMarket();if(DIRTY.port)renderPort();if(DIRTY.sci)renderSci();if(DIRTY.sciP)renderSciProg();if(DIRTY.pr)renderPrestige();if(DIRTY.ach)renderAch();if(DIRTY.statsT)renderStatsTab();if(DIRTY.set)renderSet();updBack();Object.keys(DIRTY).forEach(k=>DIRTY[k]=false);}
-
-function renderStats(){$('#hFeed').textContent=fmt(S.feed);$('#hFat').textContent=fmt(S.fat);$('#hDna').textContent=fmt(S.dna);$('#hSci').textContent=fmt(S.sci);$('#hPps').textContent=fmt(C.totFPS());$('#ttClick').textContent=fmt(C.clickVal());$('#ttTotal').textContent=fmt(S.cl);}
-
-function renderStalls(){const r=$('#gStalls');r.innerHTML='';D.stalls.forEach(s=>{const c=S.st[s.id],cost=C.stallCost(s,c),unl=S.tFat>=s.ul||c>0,canBuy=unl&&can('fat',cost),feed=C.stallFeed(s)*c,fat=C.stallFat(s)*c,max=c>=1e3;const card=el('div',{cls:`item-card${!unl?' locked':''}${max?' maxed':''}`,style:`border-left:4px solid ${s.cl}`},[el('div',{cls:'item-head'},[el('span',{cls:'item-icon',style:`color:${s.cl}`},s.i),el('div',{cls:'item-main'},[el('div',{cls:'item-name'},s.n),el('div',{cls:'item-desc'},s.d)]),el('span',{cls:`badge ${!unl?'locked':max?'maxed':canBuy?'avail':'owned'}`},!unl?'ЗАМОК':max?'МАКС':canBuy?'ДОСТУПНО':'КУПЛЕНО')]),el('div',{cls:'item-stats'},[stat('🌽 Едят/с',fmt(fat),'feed'),stat('🥩 Дают/с',fmt(fat),'fat'),stat('Кол-во',fmt(c))]),el('div',{cls:'item-effect'},[el('span',{cls:'icon'},'⚙️'),el('span',{cls:'txt'},`База: ${s.f}🌽 / ${s.ft}🥩`)]),el('div',{cls:'item-foot'},[el('div',{cls:`item-cost fat`},[el('span',{cls:'cur'},'🥩'),el('span',{cls:'amt'},fmt(cost))]),el('span',{cls:'item-next'},`След: ${fmt(C.stallCost(s,c+1))}`)]),el('div',{style:'display:flex;gap:6px;margin-top:auto'},[el('button',{cls:'btn primary sm',onClick:()=>G.buyStall(s.id),disabled:!canBuy||max},'Купить'),el('button',{cls:'btn sm',onClick:()=>G.buyStall(s.id,true),disabled:!canBuy||max},'Макс')])]));r.appendChild(card);});}
-function stat(l,v,cl){return el('div',{cls:'item-stat'},[el('span',{cls:'lbl'},l),el('span',{cls:`val mono ${cl}`},v)]);}
-
-/* Other renders follow same pattern: createElement, event listeners, minimal DOM ops */
-/* For brevity, only Stalls shown fully. Others are identical logic. */
-/* === FULL RENDER FUNCTIONS INCLUDED IN FINAL BUNDLE BELOW === */
-
-/* ===== MODALS ===== */
-const openM=id=>{$(id).classList.add('open');updBack();};
-const closeM=id=>{$(id).classList.remove('open');updBack();};
-function closeOff(){closeM('mOffline');if(S.offProg&&S.set.offN){toast(`Офлайн: +${fmt(S.offProg.fat)}🥩 +${fmt(S.offProg.sci)}🔬 за ${fmtT(S.offProg.t/1000)}`,'ok');}S.offProg=null;}
-
-/* ===== PIG INTERACTION ===== */
-let mX=0,mY=0;document.addEventListener('mousemove',e=>{mX=e.clientX;mY=e.clientY;updEyes();},{passive:true});
-document.addEventListener('touchmove',e=>{if(e.touches[0]){mX=e.touches[0].clientX;mY=e.touches[0].clientY;updEyes();}},{passive:true});
-function updEyes(){const b=$('#pigBtn');if(!b)return;const r=b.getBoundingClientRect();const cx=r.left+r.width/2,cy=r.top+r.height/2;const dx=mX-cx,dy=mY-cy;const d=Math.hypot(dx,dy);const mx=2;const a=Math.atan2(dy,dx);const ox=Math.cos(a)*Math.min(d/20,mx),oy=Math.sin(a)*Math.min(d/20,mx);$('#pigEyeL')?.style.setProperty('transform',`translate(${ox}px,${oy}px)`);$('#pigEyeR')?.style.setProperty('transform',`translate(${ox}px,${oy}px)`);}
-setInterval(()=>{if(Math.random()<.03)blink();},100);
-function blink(){$$('#pigEyelids path').forEach(l=>l.style.transform='scale(1,1)');setTimeout(()=>$$('#pigEyelids path').forEach(l=>l.style.transform='scale(1,0)'),120);}
-
-/* ===== MAIN LOOP ===== */
-let last=0;
-function loop(ts){if(!last)last=ts;const dt=ts-last;last=ts;
-  // Stalls
-  D.stalls.forEach(s=>{const c=S.st[s.id];if(c>0){const fn=C.stallFeed(s)*c,fp=C.stallFat(s)*c,q=Math.random()<C.quCh()?2:1;if(S.feed>=fn){S.feed-=fn;S.fat+=fp*q;S.tFat+=fp*q;}else{const r=S.feed/fn||0;S.feed=0;const sv=1+S.ab.surv+(S.br.mg?.5:0);S.fat+=fp*r*q*.5*sv;S.tFat+=fp*r*q*.5*sv;}}});
-  // Facts
-  D.facts.forEach(f=>{const c=S.fc[f.id];if(c>0){const rt=f.r*c,inp=S.fs[f.in]||0;if(inp>=rt){S.fs[f.in]-=rt;S.fs[f.out]=(S.fs[f.out]||0)+rt;}else{S.fs[f.out]=(S.fs[f.out]||0)+inp;S.fs[f.in]=0;}}});
-  // Sci from facts
-  D.facts.forEach(f=>{if(S.fc[f.id]>0){S.sci+=f.sci*S.fc[f.id]/10;S.tSci+=f.sci*S.fc[f.id]/10;}});
-  // Market
-  D.market.forEach(m=>{let p=S.mp[m.id]||m.bp;p*=1+(Math.random()-.5)*2*m.v;p=Math.max(m.bp*.1,Math.min(m.bp*10,p));S.mp[m.id]=p;});
-  // Auto
-  if(S.auto){D.stalls.forEach(s=>{if(S.st[s.id]<1e3){const c=C.stallCost(s,S.st[s.id]);if(can('fat',c))G.buyStall(s.id);}});D.genes.forEach(g=>{if(S.ge[g.id]<g.ml){const c=C.geneCost(g);if(can('dna',c))G.buyGene(g.id);}});D.sciUps.forEach(s=>{if(S.su[s.id]<s.ml){const c=C.sciCost(s);if(can('sci',c))G.buySci(s.id);}});}
-  // AutoClick
-  if(S.su.a1>0){for(let i=0;i<S.su.a1*.1;i++)G.clickPig();}
-  G.checkAch?.();
-  mark('stats');
-  renderAll();
-  requestAnimationFrame(loop);
+// Mock for local testing
+if (!IS_TELEGRAM) {
+  console.warn('[TMA] Running in MOCK mode (open in Telegram for full features)');
+  Tg = {
+    expand: () => {}, ready: () => {}, themeParams: { bg_color: '#1a120d', text_color: '#fff8f0', secondary_bg_color: '#2d1f15', section_bg_color: '#4a3528', button_color: '#e53935' },
+    onEvent: (e, cb) => { if (e === 'themeChanged') window.addEventListener('themechange', cb); },
+    MainButton: { text: '', isVisible: false, setText: function(t) { this.text = t; console.log('[MainButton] Text:', t); }, show: function() { this.isVisible = true; console.log('[MainButton] Show'); }, hide: function() { this.isVisible = false; }, onClick: function(cb) { this._cb = cb; }, offClick: function() { this._cb = null; } },
+    BackButton: { isVisible: false, show: function() { this.isVisible = true; }, hide: function() { this.isVisible = false; }, onClick: function(cb) { this._cb = cb; }, offClick: function() { this._cb = null; } },
+    HapticFeedback: { impactOccurred: (t) => console.log('[Haptic]', t), notificationOccurred: (t) => console.log('[HapticNotif]', t) },
+    CloudStorage: { getItem: (k, cb) => { try { const v = localStorage.getItem('tgCloud_' + k); cb(null, v); } catch (e) { cb(e); } }, setItem: (k, v, cb) => { try { localStorage.setItem('tgCloud_' + k, v); cb(null, true); } catch (e) { cb(e); } }, removeItem: (k, cb) => { try { localStorage.removeItem('tgCloud_' + k); cb(null); } catch (e) { cb(e); } } },
+    close: () => console.log('[TMA] Close'),
+    viewportHeight: window.innerHeight,
+    viewportStableHeight: window.innerHeight,
+  };
 }
 
-/* ===== ACHIEVEMENTS CHECK ===== */
-G.checkAch=()=>{D.ach.forEach(a=>{if(!S.ach[a.id]&&a.c(S)){S.ach[a.id]=true;applyAB();toast(`🏆 ${a.n}: ${a.r}`,'ok');part(innerWidth/2,innerHeight/2,'⭐','#ffb300');HN('success');}});};
+// Initialize
+try { Tg.expand(); Tg.ready(); } catch (e) { console.error('Tg init error', e); }
 
-/* ===== EVENT BINDING ===== */
-document.addEventListener('DOMContentLoaded',()=>{
-  load(); // Async, renders after
+// ===== 2. THEME SYNC =====
+function applyTheme() {
+  try {
+    const p = Tg.themeParams;
+    if (!p) return;
+    const r = document.documentElement;
+    r.style.setProperty('--bg', p.bg_color || '#1a120d');
+    r.style.setProperty('--fg', p.text_color || '#fff8f0');
+    r.style.setProperty('--bg-card', p.secondary_bg_color || '#2d1f15');
+    r.style.setProperty('--border', p.section_bg_color || '#4a3528');
+    r.style.setProperty('--gold', p.button_color || '#ffb300');
+    r.style.setProperty('--fat', p.button_color || '#e53935');
+    r.style.setProperty('--feed', p.button_color || '#ffd54f');
+  } catch (e) { console.error('Theme error', e); }
+}
+applyTheme();
+try { Tg.onEvent('themeChanged', applyTheme); } catch (e) {}
 
-  // Pig
-  $('#pigBtn').addEventListener('click',G.clickPig);
-  $('#pigBtn').addEventListener('touchstart',e=>G.clickPig(e.touches[0]),{passive:true});
+// ===== 3. MAIN BUTTON =====
+function setupMainButton() {
+  try {
+    Tg.MainButton.setText('🐷 Кормить');
+    Tg.MainButton.offClick(); // Clear previous
+    Tg.MainButton.onClick(() => G.clickPig({ clientX: innerWidth / 2, clientY: 100 }));
+    Tg.MainButton.show();
+  } catch (e) { console.error('MainButton error', e); }
+}
+setupMainButton();
+
+// ===== 4. BACK BUTTON =====
+function updateBackButton() {
+  try {
+    const open = document.querySelector('.modal-overlay.open');
+    if (open) {
+      Tg.BackButton.show();
+      Tg.BackButton.offClick();
+      Tg.BackButton.onClick(() => {
+        if (document.getElementById('mPrestige').classList.contains('open')) closeM('mPrestige');
+        else if (document.getElementById('mOffline').classList.contains('open')) closeOff();
+      });
+    } else {
+      Tg.BackButton.hide();
+      Tg.BackButton.offClick();
+      Tg.BackButton.onClick(() => Tg.close());
+    }
+  } catch (e) {}
+}
+
+// ===== 5. HAPTICS =====
+const Haptic = Tg.HapticFeedback;
+const H = (t = 'light') => { try { Haptic?.impactOccurred(t); } catch (e) { if (navigator.vibrate) navigator.vibrate(t === 'heavy' ? [100, 50, 100] : 10); } };
+const HN = (t) => { try { Haptic?.notificationOccurred(t); } catch (e) {} };
+
+// ===== 6. CLOUD STORAGE =====
+const CS = {
+  get: (k) => new Promise((resolve) => {
+    try { Tg.CloudStorage.getItem(k, (err, v) => resolve(err ? null : JSON.parse(v || 'null'))); } catch (e) { resolve(null); }
+  }),
+  set: (k, v) => new Promise((resolve) => {
+    try { Tg.CloudStorage.setItem(k, JSON.stringify(v), (err, ok) => resolve(ok)); } catch (e) { resolve(false); }
+  }),
+  remove: (k) => new Promise((resolve) => {
+    try { Tg.CloudStorage.removeItem(k, () => resolve()); } catch (e) { resolve(); }
+  })
+};
+
+// ===== 7. GAME DATA =====
+const D = {
+  stalls: [
+    { id: 'piglet', n: 'Поросёнок', i: '🐖', d: 'Маленький, съедает мало.', c: 10, f: .1, ft: 0, ul: 0, cl: '#ff8fa3' },
+    { id: 'sow', n: 'Свинка', i: '🐷', d: 'Стабильный доход.', c: 100, f: .5, ft: 10, ul: 10, cl: '#ff8fa3' },
+    { id: 'boar', n: 'Кабан', i: '🐗', d: 'Жирный, ест много.', c: 1000, f: 3, ft: 100, ul: 50, cl: '#c62828' },
+    { id: 'ind', n: 'Пром. гибрид', i: '🏭', d: 'Макс. жир. Ест тонны.', c: 10000, f: 20, ft: 500, ul: 200, cl: '#e53935' },
+    { id: 'bio', n: 'Биотех', i: '🧬', d: 'Геномодифицированная.', c: 100000, f: 100, ft: 2000, ul: 1000, cl: '#81c784' },
+    { id: 'qu', n: 'Квантовая', i: '⚛️', d: 'Суперпозиция жира.', c: 1000000, f: 500, ft: 10000, ul: 5000, cl: '#ffb300' }
+  ],
+  genes: [
+    { id: 'ap', n: 'Аппетит', i: '🍽️', d: 'Меньше корма на жир.', c: 1, cm: 2, ml: 50, e: .05, t: 'fe', cur: 'dna' },
+    { id: 'mt', n: 'Обмен веществ', i: '⚡', d: 'Жир эффективнее.', c: 2, cm: 2.5, ml: 50, e: .04, t: 'fat', cur: 'dna' },
+    { id: 'fr', n: 'Плодовитость', i: '👶', d: 'Бонус ДНК при престиже.', c: 5, cm: 3, ml: 30, e: .1, t: 'dnaB', cur: 'dna' },
+    { id: 'mq', n: 'Качество мяса', i: '🥩', d: 'Цена жира выше.', c: 10, cm: 3, ml: 20, e: .05, t: 'mkt', cur: 'dna' },
+    { id: 'hr', n: 'Выносливость', i: '🛡️', d: 'Меньше потерь.', c: 20, cm: 4, ml: 10, e: .15, t: 'surv', cur: 'dna' },
+    { id: 'in', n: 'Интеллект', i: '🧠', d: 'Экономят корм.', c: 50, cm: 5, ml: 10, e: .08, t: 'fe', cur: 'dna' },
+    { id: 'qu', n: 'Квант. запутанность', i: '⚛️', d: 'Шанс x2 доход.', c: 100, cm: 10, ml: 5, e: .02, t: 'qu', cur: 'dna' }
+  ],
+  facts: [
+    { id: 'sm', n: 'Коптильня', i: '🏭', d: 'Жир→Колбаса.', c: 1000, r: 1, in: 'fat', out: 'saus', ul: 100, cur: 'fat', sci: .1 },
+    { id: 'cn', n: 'Консервы', i: '🥫', d: 'Колбаса→Консервы.', c: 50000, r: .5, in: 'saus', out: 'can', ul: 500, cur: 'fat', sci: .5 },
+    { id: 'sl', n: 'Лаборатория', i: '🧪', d: 'Консервы→Деликатесы.', c: 1e6, r: .2, in: 'can', out: 'del', ul: 2000, cur: 'fat', sci: 2 },
+    { id: 'bp', n: 'Биореактор', i: '⚗️', d: 'Деликатесы→Сыворотка.', c: 1e8, r: .05, in: 'del', out: 'ser', ul: 10000, cur: 'fat', sci: 10 }
+  ],
+  store: [
+    { id: 'fat', n: 'Жир', i: '🥩', cl: 'var(--fat)' },
+    { id: 'saus', n: 'Колбаса', i: '🌭', cl: 'var(--gold)' },
+    { id: 'can', n: 'Консервы', i: '🥫', cl: '#ff9800' },
+    { id: 'del', n: 'Деликатесы', i: '🍖', cl: '#e91e63' },
+    { id: 'ser', n: 'Сыворотка', i: '💉', cl: 'var(--science)' }
+  ],
+  bios: [
+    { id: 'b1', n: 'Сыворотка роста', i: '💉', d: 'Бонус ДНК.', c: 10, cur: 'ser', e: { t: 'dnaB', v: .1 }, ml: 100 },
+    { id: 'b2', n: 'Сыворотка аппетита', i: '💉', d: 'Эфф. корма.', c: 20, cur: 'ser', e: { t: 'fe', v: .05 }, ml: 50 },
+    { id: 'b3', n: 'Сыворотка жирности', i: '💉', d: 'Произв. жира.', c: 50, cur: 'ser', e: { t: 'fat', v: .08 }, ml: 30 },
+    { id: 'b4', n: 'Квант. сыворотка', i: '💉', d: 'Шанс x2 всё.', c: 200, cur: 'ser', e: { t: 'qu', v: .01 }, ml: 10 }
+  ],
+  sciUps: [
+    { id: 'a1', n: 'Автокормушка', i: '🤖', d: 'Автоклик.', c: 100, cm: 3, ml: 10, e: .1, t: 'ac', cur: 'sci' },
+    { id: 'a2', n: 'Опт. корма', i: '🌽', d: 'Глоб. эофф. корма.', c: 500, cm: 4, ml: 20, e: .05, t: 'fe', cur: 'sci' },
+    { id: 'a3', n: 'Жирная физ.', i: '🥩', d: 'Глоб. эофф. жира.', c: 2000, cm: 5, ml: 15, e: .08, t: 'fat', cur: 'sci' },
+    { id: 'a4', n: 'Офлайн %', i: '🛸', d: '% скорости офлайн.', c: 10000, cm: 10, ml: 10, e: .1, t: 'off', cur: 'sci' },
+    { id: 'a5', n: 'Рынок гений', i: '📈', d: 'Прибыль рынка.', c: 50000, cm: 10, ml: 5, e: .2, t: 'mkt', cur: 'sci' },
+    { id: 'a6', n: 'Ген. усил.', i: '🧬', d: 'Множ. ДНК.', c: 1e6, cm: 20, ml: 3, e: .5, t: 'dnaM', cur: 'sci' }
+  ],
+  market: [
+    { id: 'corn', n: 'Кукуруза', i: '🌽', bp: 10, v: .1, u: 'т' },
+    { id: 'soy', n: 'Соя', i: '🌱', bp: 50, v: .15, u: 'т' },
+    { id: 'pig', n: 'Поросени', i: '🐖', bp: 500, v: .25, u: 'шт' },
+    { id: 'fatM', n: 'Свиной жир', i: '🥩', bp: 2000, v: .3, u: 'т' },
+    { id: 'land', n: 'Земля', i: '🏞️', bp: 50000, v: .05, u: 'га' }
+  ],
+  breed: [
+    { id: 'lr', n: 'Ландрейс', i: '🐷', d: 'Эофф. корма +20%.', c: 10, cur: 'dna', e: { fe: .2 } },
+    { id: 'lw', n: 'Ларж-Уайт', i: '🐷', d: 'Произв. жира +25%.', c: 25, cur: 'dna', e: { fat: .25 } },
+    { id: 'dr', n: 'Дюрок', i: '🐗', d: 'Цена жира +30%.', c: 50, cur: 'dna', e: { mkt: .3 } },
+    { id: 'mg', n: 'Мангалица', i: '🐷', d: 'Выживаемость +50%.', c: 100, cur: 'dna', e: { surv: .5 } },
+    { id: 'ib', n: 'Иберийская', i: '🐷', d: 'Эофф. корма +40%.', c: 200, cur: 'dna', e: { fe: .4 } },
+    { id: 'gp', n: 'Свинный Бог', i: '🐷👑', d: 'Все бонусы ×2.', c: 1000, cur: 'dna', e: { all: 2 } }
+  ],
+  ach: [
+    { id: 'c1', n: 'Первый хряк', d: '1 клик', c: s => s.cl >= 1, r: '+1% клик', rv: .01, t: 'cl', cat: 'gen' },
+    { id: 'c2', n: 'Хрякатель', d: '100 кликов', c: s => s.cl >= 100, r: '+5% клик', rv: .05, t: 'cl', cat: 'gen' },
+    { id: 'c3', n: 'Профи', d: '10к кликов', c: s => s.cl >= 1e4, r: '+20% клик', rv: .2, t: 'cl', cat: 'gen' },
+    { id: 's1', n: 'Строитель', d: '1 стойло', c: s => Object.values(s.st).some(v => v > 0), r: 'Стойла +5%', rv: .05, t: 'st', cat: 'farm' },
+    { id: 's2', n: 'Свинарник', d: '100 стойл', c: s => Object.values(s.st).reduce((a, b) => a + b, 0) >= 100, r: 'Стойла +10%', rv: .1, t: 'st', cat: 'farm' },
+    { id: 'f1', n: 'Миллионер', d: '1М жира', c: s => s.fat >= 1e6, r: 'Жир +10%', rv: .1, t: 'fat', cat: 'farm' },
+    { id: 'f2', n: 'Миллиардер', d: '1Мрд жира', c: s => s.fat >= 1e9, r: 'Жир +25%', rv: .25, t: 'fat', cat: 'farm' },
+    { id: 'p1', n: 'Первый Апок.', d: '1 престиж', c: s => s.pr >= 1, r: 'ДНК +25%', rv: .25, t: 'dna', cat: 'pr' },
+    { id: 'p2', n: 'Цикличный', d: '10 престижей', c: s => s.pr >= 10, r: 'ДНК +50%', rv: .5, t: 'dna', cat: 'pr' },
+    { id: 'g1', n: 'Генетик', d: 'Ген 10 ур.', c: s => Object.values(s.ge).some(v => v >= 10), r: 'Гены +10%', rv: .1, t: 'ge', cat: 'gen' },
+    { id: 'm1', n: 'Волк Уолл', d: '1М на рынке', c: s => s.mktP >= 1e6, r: 'Рынок +20%', rv: .2, t: 'mkt', cat: 'mkt' },
+    { id: 'sc1', n: 'Учёный', d: '1000 науки', c: s => s.sci >= 1e3, r: 'Наука +15%', rv: .15, t: 'sci', cat: 'sci' }
+  ]
+};
+
+// ===== 8. STATE =====
+const S = {
+  feed: 0, fat: 0, tFat: 0, dna: 0, pr: 0, sci: 0, tSci: 0,
+  st: { piglet: 0, sow: 0, boar: 0, ind: 0, bio: 0, qu: 0 },
+  ge: { ap: 0, mt: 0, fr: 0, mq: 0, hr: 0, in: 0, qu: 0 },
+  br: {},
+  fc: { sm: 0, cn: 0, sl: 0, bp: 0 },
+  fs: { fat: 0, saus: 0, can: 0, del: 0, ser: 0 },
+  bi: { b1: 0, b2: 0, b3: 0, b4: 0 },
+  su: { a1: 0, a2: 0, a3: 0, a4: 0, a5: 0, a6: 0 },
+  mk: { corn: 0, soy: 0, pig: 0, fatM: 0, land: 0 },
+  mp: {},
+  mktP: 0,
+  clP: 1,
+  auto: false,
+  cl: 0,
+  ach: {},
+  ab: { cl: 0, st: 0, fat: 0, dna: 0, ge: 0, mkt: 0, fe: 0, fatE: 0, surv: 0, dnaB: 0, mktP: 0, qu: 0, all: 0, ac: 0, off: 0, mktP2: 0, dnaM: 0 },
+  stt: { tFeed: 0, tSt: 0, tGe: 0, tFc: 0, tSc: 0, start: Date.now() },
+  set: { vib: true, sound: false, red: false, hc: false, autoS: true, offN: true },
+  lastSave: Date.now(),
+  offProg: null
+};
+
+// Dirty flags
+const DIRTY = { stats: true, stalls: true, genes: true, breed: true, facts: true, bios: true, store: true, market: true, port: true, sci: true, sciP: true, pr: true, ach: true, statsT: true, set: true };
+
+// ===== 9. UTILS =====
+const fmt = n => { if (!isFinite(n)) return '∞'; const a = Math.abs(n); if (a < 1e3) return n.toFixed(a < 10 && a % 1 ? 2 : 0); if (a < 1e6) return (n / 1e3).toFixed(2) + 'K'; if (a < 1e9) return (n / 1e6).toFixed(2) + 'M'; if (a < 1e12) return (n / 1e9).toFixed(2) + 'B'; if (a < 1e15) return (n / 1e12).toFixed(2) + 'T'; const e = Math.floor(Math.log10(a)); return (n / Math.pow(10, e)).toFixed(2) + 'e' + e; };
+const fmtT = s => { if (s < 60) return s.toFixed(1) + 'с'; if (s < 3600) return Math.floor(s / 60) + 'м ' + (s % 60).toFixed(0) + 'с'; if (s < 86400) return Math.floor(s / 3600) + 'ч ' + Math.floor((s % 3600) / 60) + 'м'; return Math.floor(s / 86400) + 'д ' + Math.floor((s % 86400) / 3600) + 'ч'; };
+const $ = (s) => document.getElementById(s);
+const $$ = (s) => document.querySelectorAll(s);
+const el = (t, a = {}, c = []) => { const e = document.createElement(t); Object.entries(a).forEach(([k, v]) => { if (k === 'cls') e.className = v; else if (k === 'html') e.innerHTML = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v); }); c.forEach(ch => e.appendChild(ch)); return e; };
+const stat = (l, v, cl) => el('div', { cls: 'item-stat' }, [el('span', { cls: 'lbl' }, l), el('span', { cls: `val mono ${cl}` }, v)]);
+const H = (t = 'light') => { try { Haptic?.impactOccurred(t); } catch (e) { if (navigator.vibrate) navigator.vibrate(t === 'heavy' ? [100, 50, 100] : 10); } };
+const HN = (t) => { try { Haptic?.notificationOccurred(t); } catch (e) {} };
+const toast = (m, t = 'inf') => { const w = $('toastWrap'); if (!w) return; const d = el('div', { cls: `toast ${t}`, html: `<span class="toast-ic">${{ inf: 'ℹ️', ok: '✅', err: '❌', wrn: '⚠️' }[t]}</span><div class="toast-c"><div class="toast-tt">${{ inf: 'Инфо', ok: 'Успех', err: 'Ошибка', wrn: 'Внимание' }[t]}</div><div class="toast-msg">${m}</div></div><button class="toast-x" onclick="this.parentElement.remove()">&times;</button>` }); w.appendChild(d); setTimeout(() => { d.style.animation = 'toastIn .3s reverse forwards'; setTimeout(() => d.remove(), 300); }, 4000); HN(t === 'err' ? 'error' : t === 'ok' ? 'success' : 'warning'); };
+const part = (x, y, ch, clr) => { for (let i = 0; i < 5; i++) { const p = el('div', { style: `position:fixed;left:${x}px;top:${y}px;z-index:9999;pointer-events:none;font-size:1.2rem;color:${clr};animation:particleFly .8s cubic-bezier(.22,1,.36,1) forwards` }); p.textContent = ch; const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 50; p.style.setProperty('--tx', Math.cos(a) * d + 'px'); p.style.setProperty('--ty', Math.sin(a) * d + 'px'); document.body.appendChild(p); setTimeout(() => p.remove(), 800); } };
+const openM = id => { const m = $(id); if (m) { m.classList.add('open'); updateBackButton(); } };
+const closeM = id => { const m = $(id); if (m) { m.classList.remove('open'); updateBackButton(); } };
+const closeOff = () => { closeM('mOffline'); if (S.offProg && S.set.offN) { toast(`Офлайн: +${fmt(S.offProg.fat)}🥩 +${fmt(S.offProg.sci)}🔬 за ${fmtT(S.offProg.t / 1000)}`, 'ok'); } S.offProg = null; };
+const mark = (k) => { if (!k || k === 'all') Object.keys(DIRTY).forEach(x => DIRTY[x] = true); else if (DIRTY[k] !== undefined) DIRTY[k] = true; };
+
+// ===== 10. CALCULATIONS (Pure) =====
+const C = {
+  stallCost: (s, c) => Math.floor(s.c * Math.pow(1.15, c)),
+  stallFeed: (s) => s.f / (1 + totFE()),
+  stallFat: (s) => s.ft * totFatE(),
+  totFE: () => { let m = 1 + S.ab.fe; if (S.br.lr) m *= 1.2; if (S.br.ib) m *= 1.4; if (S.su.a2) m *= 1 + S.su.a2 * .05; m *= 1 + S.ab.all; return m - 1; },
+  totFatE: () => { let m = 1 + S.ab.fatE; if (S.br.lw) m *= 1.25; if (S.su.a3) m *= 1 + S.su.a3 * .08; m *= 1 + S.ab.all; return m; },
+  totFPS: () => D.stalls.reduce((s, x) => s + C.stallFat(x) * S.st[x.id], 0),
+  clickVal: () => S.clP * (1 + S.ab.cl) * (1 + S.ab.all),
+  geneCost: (g) => Math.floor(g.c * Math.pow(g.cm, S.ge[g.id])),
+  factCost: (f) => Math.floor(f.c * Math.pow(1.2, S.fc[f.id])),
+  bioCost: (b) => Math.floor(b.c * Math.pow(2, S.bi[b.id])),
+  sciCost: (s) => Math.floor(s.c * Math.pow(s.cm, S.su[s.id])),
+  quCh: () => S.ab.qu + (S.ge.qu || 0) * .02 + (S.bi.b4 || 0) * .01 + (S.su.a6 || 0) * .01,
+  prGain: () => { if (S.tFat < 1e9) return 0; const b = Math.floor(Math.sqrt(S.tFat / 1e9)); const m = 1 + S.ab.dna + (S.br.gp ? 1 : 0) + (S.su.a6 || 0) * .5; return Math.floor(b * m); },
+  prBon: () => { const d = S.dna; return { fe: 1 + d * .02, fat: 1 + d * .015, dna: d * .5, cl: 1 + d * .01 }; }
+};
+
+// ===== 11. SAVE/LOAD =====
+const KEY = 'tgPigEmpireV1';
+async function save() {
+  S.lastSave = Date.now();
+  try { await CS.set(KEY, S); } catch (e) { localStorage.setItem(KEY, JSON.stringify(S)); }
+}
+async function load() {
+  try {
+    const v = await CS.get(KEY);
+    if (v) { Object.assign(S, v); }
+  } catch (e) {
+    const v = localStorage.getItem(KEY);
+    if (v) { try { Object.assign(S, JSON.parse(v)); } catch (e) {} }
+  }
+  // Migrate/Init defaults
+  D.stalls.forEach(s => { if (S.st[s.id] === undefined) S.st[s.id] = 0; });
+  D.genes.forEach(g => { if (S.ge[g.id] === undefined) S.ge[g.id] = 0; });
+  D.facts.forEach(f => { if (S.fc[f.id] === undefined) S.fc[f.id] = 0; });
+  D.bios.forEach(b => { if (S.bi[b.id] === undefined) S.bi[b.id] = 0; });
+  D.sciUps.forEach(s => { if (S.su[s.id] === undefined) S.su[s.id] = 0; });
+  D.market.forEach(m => { if (S.mp[m.id] === undefined) S.mp[m.id] = m.bp; });
+  applyAB();
+  calcOff();
+  markAll();
+  renderAll();
+}
+function applyAB() {
+  S.ab = { cl: 0, st: 0, fat: 0, dna: 0, ge: 0, mkt: 0, fe: 0, fatE: 0, surv: 0, dnaB: 0, mktP: 0, qu: 0, all: 0, ac: 0, off: 0, mktP2: 0, dnaM: 0 };
+  D.ach.forEach(a => { if (S.ach[a.id]) { const v = a.rv; switch (a.t) { case 'cl': S.ab.cl += v; break; case 'st': S.ab.st += v; break; case 'fat': S.ab.fat += v; break; case 'dna': S.ab.dna += v; break; case 'ge': S.ab.ge += v; break; case 'mkt': S.ab.mkt += v; break; case 'sci': S.ab[a.e.t] += v; break; } } });
+}
+function calcOff() { const d = Date.now() - S.lastSave; if (d < 60000) return; const fps = C.totFPS(); if (fps <= 0) return; const g = fps * d / 1000; S.fat += g; S.tFat += g; const sci = D.facts.reduce((s, f) => s + (S.fc[f.id] || 0) * f.sci * d / 1000, 0); S.sci += sci; S.tSci += sci; S.offProg = { t: d, fat: g, sci: sci }; }
+function markAll() { Object.keys(DIRTY).forEach(k => DIRTY[k] = true); }
+
+// ===== 12. ACTIONS =====
+const G = {
+  clickPig(e) { const v = C.clickVal(); S.feed += v; S.stt.tFeed += v; S.cl++; const b = $('pigBtn'); if (b) { b.classList.add('fed'); setTimeout(() => b.classList.remove('fed'), 120); } if (e) { part(e.clientX, e.clientY, '🌽', '#ffd54f'); H('light'); } mark('stats'); },
+  buyStall(id, max) { const s = D.stalls.find(x => x.id === id); let b = 0; while (true) { const c = C.stallCost(s, S.st[id]); if (!can('fat', c)) break; pay('fat', c); S.st[id]++; S.stt.tSt++; b++; if (!max) break; } if (b) { toast(`Куплено ${s.n}: ${fmt(b)}`, 'ok'); H('medium'); markAll(); } },
+  buyGene(id) { const g = D.genes.find(x => x.id === id); if (S.ge[id] >= g.ml) return toast('Макс', 'wrn'); const c = C.geneCost(g); if (!can('dna', c)) return toast('Нет ДНК', 'err'); pay('dna', c); S.ge[id]++; S.stt.tGe++; toast(`${g.n} → ${S.ge[id]}`, 'ok'); H('light'); mark('genes'); },
+  buyBreed(id) { const b = D.breed.find(x => x.id === id); if (S.br[id]) return toast('Есть', 'wrn'); if (!can('dna', b.c)) return toast('Нет ДНК', 'err'); pay('dna', b.c); S.br[id] = true; toast(`Порода: ${b.n}!`, 'ok'); H('heavy'); mark('breed'); },
+  buyFact(id) { const f = D.facts.find(x => x.id === id); const c = C.factCost(f); if (!can('fat', c)) return toast('Нет жира', 'err'); pay('fat', c); S.fc[id]++; S.stt.tFc++; toast(`${f.n}!`, 'ok'); H('medium'); mark('facts'); },
+  buyBio(id) { const b = D.bios.find(x => x.id === id); if (S.bi[id] >= b.ml) return toast('Макс', 'wrn'); const c = C.bioCost(b); if (!can('ser', c)) return toast('Нет сыворотки', 'err'); pay('ser', c); S.bi[id]++; toast(`${b.n} → ${S.bi[id]}`, 'ok'); H('light'); mark('bios'); },
+  buySci(id) { const s = D.sciUps.find(x => x.id === id); if (S.su[id] >= s.ml) return toast('Макс', 'wrn'); const c = C.sciCost(s); if (!can('sci', c)) return toast('Нет науки', 'err'); pay('sci', c); S.su[id]++; S.stt.tSc++; toast(`${s.n} → ${S.su[id]}`, 'ok'); H('light'); mark('sci'); },
+  buyMkt(id, n = 1) { const m = D.market.find(x => x.id === id); const p = S.mp[id]; const c = p * n; if (!can('fat', c)) return toast('Нет жира', 'err'); pay('fat', c); S.mk[id] = (S.mk[id] || 0) + n; toast(`Куплено ${m.n} x${n}`, 'ok'); H('light'); mark('market'); },
+  sellMkt(id, n = 1) { const m = D.market.find(x => x.id === id); const h = S.mk[id] || 0; if (h < n) return toast('Нет товара', 'err'); const p = S.mp[id]; const mul = 1 + S.ab.mktP + (S.br.dr ? .3 : 0) + (S.su.a5 || 0) * .2; const g = p * n * mul; S.fat += g; S.mktP += g; S.mk[id] -= n; toast(`Продано ${m.n} x${n}`, 'ok'); H('medium'); mark('market'); },
+  sellAll(id) { const h = S.mk[id] || 0; if (h) G.sellMkt(id, h); },
+  prestige() { const g = C.prGain(); if (g <= 0) return; if (!confirm(`Сжечь за ${fmt(g)} ДНК?`)) return; S.dna += g; S.pr++; S.feed = 0; S.fat = 0; S.tFat = 0; S.st = { piglet: 0, sow: 0, boar: 0, ind: 0, bio: 0, qu: 0 }; S.fc = { sm: 0, cn: 0, sl: 0, bp: 0 }; S.fs = { fat: 0, saus: 0, can: 0, del: 0, ser: 0 }; S.mk = { corn: 0, soy: 0, pig: 0, fatM: 0, land: 0 }; S.mp = {}; D.market.forEach(m => S.mp[m.id] = m.bp); S.mktP = 0; S.clP = 1; applyAB(); toast(`Апокалипсис! +${fmt(g)} ДНК`, 'ok'); H('heavy'); HN('success'); closeM('mPrestige'); markAll(); save(); },
+  toggleAuto() { S.auto = !S.auto; const b = $('autoBtn'); if (b) { b.textContent = S.auto ? '🤖 Авто: ВКЛ' : '🤖 Авто: ВЫКЛ'; b.className = S.auto ? 'btn secondary sm' : 'btn ghost sm'; } toast(S.auto ? 'Авто ВКЛ' : 'Авто ВЫКЛ', S.auto ? 'ok' : 'inf'); },
+  export() { const b = new Blob([JSON.stringify(S)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = el('a', { href: u, download: 'pig-save.json' }); a.click(); URL.revokeObjectURL(u); toast('Экспорт', 'ok'); },
+  import() { const i = el('input', { type: 'file', accept: '.json' }); i.onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { try { const p = JSON.parse(ev.target.result); Object.assign(S, p); applyAB(); markAll(); toast('Импорт', 'ok'); } catch (err) { toast('Ошибка', 'err'); } }; r.readAsText(f); }; i.click(); },
+  hardR() { if (confirm('УДАЛИТЬ ВСЁ?')) { CS.remove(KEY); localStorage.removeItem(KEY); location.reload(); } }
+};
+const can = (c, v) => { if (c === 'fat') return S.fat >= v; if (c === 'feed') return S.feed >= v; if (c === 'dna') return S.dna >= v; if (c === 'ser') return S.fs.ser >= v; if (c === 'sci') return S.sci >= v; return false; };
+const pay = (c, v) => { if (c === 'fat') S.fat -= v; else if (c === 'feed') S.feed -= v; else if (c === 'dna') S.dna -= v; else if (c === 'ser') S.fs.ser -= v; else if (c === 'sci') S.sci -= v; };
+
+// ===== 13. RENDER ENGINE =====
+function renderAll() {
+  try { if (DIRTY.stats) renderStats(); } catch (e) { console.error('renderStats', e); }
+  try { if (DIRTY.stalls) renderStalls(); } catch (e) { console.error('renderStalls', e); }
+  try { if (DIRTY.genes) renderGenes(); } catch (e) { console.error('renderGenes', e); }
+  try { if (DIRTY.breed) renderBreed(); } catch (e) { console.error('renderBreed', e); }
+  try { if (DIRTY.facts) renderFacts(); } catch (e) { console.error('renderFacts', e); }
+  try { if (DIRTY.bios) renderBios(); } catch (e) { console.error('renderBios', e); }
+  try { if (DIRTY.store) renderStore(); } catch (e) { console.error('renderStore', e); }
+  try { if (DIRTY.market) renderMarket(); } catch (e) { console.error('renderMarket', e); }
+  try { if (DIRTY.port) renderPort(); } catch (e) { console.error('renderPort', e); }
+  try { if (DIRTY.sci) renderSci(); } catch (e) { console.error('renderSci', e); }
+  try { if (DIRTY.sciP) renderSciProg(); } catch (e) { console.error('renderSciProg', e); }
+  try { if (DIRTY.pr) renderPrestige(); } catch (e) { console.error('renderPrestige', e); }
+  try { if (DIRTY.ach) renderAch(); } catch (e) { console.error('renderAch', e); }
+  try { if (DIRTY.statsT) renderStatsTab(); } catch (e) { console.error('renderStatsTab', e); }
+  try { if (DIRTY.set) renderSet(); } catch (e) { console.error('renderSet', e); }
+  updateBackButton();
+  Object.keys(DIRTY).forEach(k => DIRTY[k] = false);
+}
+
+function renderStats() {
+  const feedEl = $('hFeed'); if (feedEl) feedEl.textContent = fmt(S.feed);
+  const fatEl = $('hFat'); if (fatEl) fatEl.textContent = fmt(S.fat);
+  const dnaEl = $('hDna'); if (dnaEl) dnaEl.textContent = fmt(S.dna);
+  const sciEl = $('hSci'); if (sciEl) sciEl.textContent = fmt(S.sci);
+  const ppsEl = $('hPps'); if (ppsEl) ppsEl.textContent = fmt(C.totFPS());
+  const ttClick = $('ttClick'); if (ttClick) ttClick.textContent = fmt(C.clickVal());
+  const ttTotal = $('ttTotal'); if (ttTotal) ttTotal.textContent = fmt(S.cl);
+}
+
+function renderStalls() {
+  const r = $('gStalls'); if (!r) return; r.innerHTML = '';
+  D.stalls.forEach(s => {
+    const c = S.st[s.id], cost = C.stallCost(s, c), unl = S.tFat >= s.ul || c > 0, canBuy = unl && can('fat', cost), feed = C.stallFeed(s) * c, fat = C.stallFat(s) * c, max = c >= 1e3;
+    const card = el('div', { cls: `item-card${!unl ? ' locked' : ''}${max ? ' maxed' : ''}`, style: `border-left:4px solid ${s.cl}` }, [
+      el('div', { cls: 'item-head' }, [el('span', { cls: 'item-icon', style: `color:${s.cl}` }, s.i), el('div', { cls: 'item-main' }, [el('div', { cls: 'item-name' }, s.n), el('div', { cls: 'item-desc' }, s.d)]), el('span', { cls: `badge ${!unl ? 'locked' : max ? 'maxed' : canBuy ? 'avail' : 'owned'}` }, !unl ? 'ЗАМОК' : max ? 'МАКС' : canBuy ? 'ДОСТУПНО' : 'КУПЛЕНО')]),
+      el('div', { cls: 'item-stats' }, [stat('🌽 Едят/с', fmt(feed), 'feed'), stat('🥩 Дают/с', fmt(fat), 'fat'), stat('Кол-во', fmt(c))]),
+      el('div', { cls: 'item-effect' }, [el('span', { cls: 'icon' }, '⚙️'), el('span', { cls: 'txt' }, `База: ${s.f}🌽 / ${s.ft}🥩`)]),
+      el('div', { cls: 'item-foot' }, [el('div', { cls: `item-cost fat` }, [el('span', { cls: 'cur' }, '🥩'), el('span', { cls: 'amt' }, fmt(cost))]), el('span', { cls: 'item-next' }, `След: ${fmt(C.stallCost(s, c + 1))}`)]),
+      el('div', { style: 'display:flex;gap:6px;margin-top:auto' }, [el('button', { cls: 'btn primary sm', onClick: () => G.buyStall(s.id), disabled: !canBuy || max }, 'Купить'), el('button', { cls: 'btn sm', onClick: () => G.buyStall(s.id, true), disabled: !canBuy || max }, 'Макс')])
+    ]); r.appendChild(card);
+  });
+}
+
+// ===== RENDER STUBS (Fully implemented below) =====
+function renderGenes() { const r = $('gGenes'); if (!r) return; r.innerHTML = ''; D.genes.forEach(g => { const lvl = S.ge[g.id], cost = C.geneCost(g), canBuy = lvl < g.ml && can('dna', cost); const card = el('div', { cls: `item-card${lvl >= g.ml ? ' maxed' : ''}` }, [ el('div', { cls: 'item-head' }, [ el('span', { cls: 'item-icon' }, g.i), el('div', { cls: 'item-main' }, [ el('div', { cls: 'item-name' }, g.n), el('div', { cls: 'item-desc' }, g.d) ]), el('span', { cls: `badge ${lvl >= g.ml ? 'maxed' : canBuy ? 'avail' : 'owned'}` }, lvl >= g.ml ? 'МАКС' : `УР. ${lvl}/${g.ml}`) ]), el('div', { cls: 'item-stats' }, [ stat('Эффект/ур', `+${(g.e * 100).toFixed(1)}%`, ''), stat('Всего', `+${(g.e * lvl * 100).toFixed(1)}%`, '') ]), el('div', { cls: 'item-effect' }, [ el('span', { cls: 'icon' }, '🧬'), el('span', { cls: 'txt' }, `Тип: ${g.t}`), el('span', { cls: 'val' }, lvl > 0 ? '+' + (g.e * lvl * 100).toFixed(1) + '%' : '-') ]), el('div', { cls: 'item-foot' }, [ el('div', { cls: 'item-cost dna' }, [ el('span', { cls: 'cur' }, '🧬'), el('span', { cls: 'amt' }, fmt(cost)) ]), el('span', { cls: 'item-next' }, `След: ${fmt(C.geneCost({ ...g, level: lvl + 1 }))}` ) ]), el('button', { cls: 'btn dna sm item-btn', onClick: () => G.buyGene(g.id), disabled: !canBuy || lvl >= g.ml }, 'Улучшить') ]); r.appendChild(card); }); }
+function renderBreed() { const r = $('gBreed'); if (!r) return; r.innerHTML = ''; D.breed.forEach(b => { const owned = S.br[b.id], cost = b.c, canBuy = !owned && can('dna', cost); const div = el('div', { cls: `breed-card${owned ? ' owned' : ''}` }, [ el('div', { cls: 'breed-main' }, [ el('span', { cls: 'breed-icon' }, b.i), el('div', { cls: 'breed-txt' }, [ el('div', { cls: 'breed-name' }, b.n), el('div', { cls: 'breed-desc' }, b.d) ]) ]), el('div', { cls: 'breed-side' }, [ el('div', { cls: 'breed-cost' }, [ el('span', { cls: 'cur' }, '🧬'), el('span', { cls: 'amt' }, fmt(cost)) ]), !owned ? el('button', { cls: 'btn dna sm', onClick: () => G.buyBreed(b.id), disabled: !canBuy }, 'Развести') : el('span', { style: 'color:var(--dna);font-weight:600;font-size:.8rem' }, 'Разведено') ]) ]); r.appendChild(div); }); }
+function renderFacts() { const r = $('gFacts'); if (!r) return; r.innerHTML = ''; D.facts.forEach(f => { const count = S.fc[f.id], cost = C.factCost(f), unl = S.tFat >= f.ul || count > 0, canBuy = unl && can('fat', cost), storedIn = S.fs[f.in] || 0, storedOut = S.fs[f.out] || 0; const card = el('div', { cls: `item-card${!unl ? ' locked' : ''}` }, [ el('div', { cls: 'item-head' }, [ el('span', { cls: 'item-icon' }, f.i), el('div', { cls: 'item-main' }, [ el('div', { cls: 'item-name' }, f.n), el('div', { cls: 'item-desc' }, f.d) ]), el('span', { cls: `badge ${!unl ? 'locked' : count > 0 ? 'owned' : 'avail'}` }, !unl ? 'ЗАМОК' : count > 0 ? `x${fmt(count)}` : 'ДОСТУПНО') ]), el('div', { cls: 'item-stats' }, [ stat(`Вход (${f.in})`, fmt(storedIn), ''), stat(`Выход (${f.out})`, fmt(storedOut), ''), stat('Скорость', fmt(f.r * count) + '/с', ''), stat('Наука/с', fmt(f.sci * count), 'sci') ]), el('div', { cls: 'item-effect' }, [ el('span', { cls: 'icon' }, '🏭'), el('span', { cls: 'txt' }, `База: ${f.r}/с | Наука: ${f.sci}/с`) ]), el('div', { cls: 'item-foot' }, [ el('div', { cls: 'item-cost fat' }, [ el('span', { cls: 'cur' }, '🥩'), el('span', { cls: 'amt' }, fmt(cost)) ]), el('span', { cls: 'item-next' }, `След: ${fmt(C.factCost({ ...f, level: count + 1 }))}` ) ]), el('button', { cls: 'btn primary sm item-btn', onClick: () => G.buyFact(f.id), disabled: !canBuy }, count > 0 ? 'Улучшить' : 'Построить') ]); r.appendChild(card); }); }
+function renderBios() { const r = $('gBios'); if (!r) return; r.innerHTML = ''; D.bios.forEach(b => { const lvl = S.bi[b.id], cost = C.bioCost(b), canBuy = lvl < b.ml && can('ser', cost), serum = S.fs.ser || 0; const card = el('div', { cls: `item-card${lvl >= b.ml ? ' maxed' : ''}` }, [ el('div', { cls: 'item-head' }, [ el('span', { cls: 'item-icon' }, b.i), el('div', { cls: 'item-main' }, [ el('div', { cls: 'item-name' }, b.n), el('div', { cls: 'item-desc' }, b.d) ]), el('span', { cls: `badge ${lvl >= b.ml ? 'maxed' : canBuy ? 'avail' : 'owned'}` }, lvl >= b.ml ? 'МАКС' : `УР. ${lvl}/${b.ml}`) ]), el('div', { cls: 'item-stats' }, [ stat('Эффект/ур', `+${(b.e.v * 100).toFixed(1)}%`, ''), stat('Всего', `+${(b.e.v * lvl * 100).toFixed(1)}%`, '') ]), el('div', { cls: 'item-effect' }, [ el('span', { cls: 'icon' }, '⚗️'), el('span', { cls: 'txt' }, `Тип: ${b.e.t}`), el('span', { cls: 'val' }, lvl > 0 ? '+' + (b.e.v * lvl * 100).toFixed(1) + '%' : '-') ]), el('div', { cls: 'item-foot' }, [ el('div', { cls: 'item-cost serum' }, [ el('span', { cls: 'cur' }, '💉'), el('span', { cls: 'amt' }, fmt(cost)) ]), el('span', { cls: 'item-next' }, `Сыворотки: ${fmt(serum)} / ${fmt(cost)}`) ]), el('button', { cls: 'btn dna sm item-btn', onClick: () => G.buyBio(b.id), disabled: !canBuy || lvl >= b.ml }, 'Улучшить') ]); r.appendChild(card); }); }
+function renderStore() { const r = $('gStore'); if (!r) return; r.innerHTML = ''; D.store.forEach(s => { const val = S.fs[s.id] || 0; const div = el('div', { cls: 'item-card', style: 'text-align:center' }, [ el('div', { cls: 'item-icon', style: `color:${s.cl}` }, s.i), el('div', { cls: 'item-name' }, s.n), el('div', { cls: 'item-desc' }, s.d), el('div', { cls: 'item-foot', style: 'justify-content:center' }, [ el('div', { cls: 'item-cost', style: `color:${s.cl}` }, [ el('span', { cls: 'amt mono' }, fmt(val)) ]) ]) ]); r.appendChild(div); }); }
+function renderMarket() { const tb = $('tblMarket'); if (!tb) return; const tbody = tb.querySelector('tbody') || tb; tbody.innerHTML = ''; D.market.forEach(m => { const price = S.mp[m.id] || m.bp, have = S.mk[m.id] || 0, change = ((price - m.bp) / m.bp * 100).toFixed(1); const tr = el('tr', {}, [ el('td', { cls: 'name' }, [ el('span', {}, m.i), m.n ]), el('td', { cls: `price ${price > m.bp ? 'up' : price < m.bp ? 'down' : ''}` }, fmt(price) + ` 🥩/${m.u}`), el('td', { cls: `chg ${change >= 0 ? 'up' : 'down'}` }, (change >= 0 ? '+' : '') + change + '%'), el('td', { cls: 'owned' }, fmt(have) + ` ${m.u}`), el('td', { cls: 'act' }, [ el('button', { cls: 'btn primary', onClick: () => G.buyMkt(m.id, 1) }, '1'), el('button', { cls: 'btn', onClick: () => G.buyMkt(m.id, 10) }, '10'), el('button', { cls: 'btn gold', onClick: () => G.sellMkt(m.id, 1), disabled: have < 1 }, 'Пр 1'), el('button', { cls: 'btn gold', onClick: () => G.sellMkt(m.id, 10), disabled: have < 10 }, 'Пр 10') ]) ]); tbody.appendChild(tr); }); }
+function renderPort() { const c = $('gPort'); if (!c) return; let html = '', totalVal = 0; D.market.forEach(m => { const have = S.mk[m.id] || 0; if (have > 0) { const price = S.mp[m.id] || m.bp, val = have * price; totalVal += val; html += `<div class="portfolio-item"><div class="portfolio-info"><span class="portfolio-name">${m.i} ${m.n}</span><span class="portfolio-qty">×${fmt(have)} ${m.u}</span></div><div class="portfolio-val">${fmt(val)} 🥩</div></div>`; } }); if (html) html += `<div style="text-align:right;margin-top:8px;font-weight:700;color:var(--gold);font-family:var(--mono)">Итого: ${fmt(totalVal)} 🥩</div>`; c.innerHTML = html || '<div style="color:var(--muted);text-align:center;padding:20px">Портфель пуст</div>'; }
+function renderSci() { const r = $('gSci'); if (!r) return; r.innerHTML = ''; D.sciUps.forEach(s => { const lvl = S.su[s.id], cost = C.sciCost(s), canBuy = lvl < s.ml && can('sci', cost); const card = el('div', { cls: `sci-card${!canBuy && lvl >= s.ml ? ' locked' : ''}` }, [ el('div', { cls: 'sci-icon' }, s.i), el('div', { cls: 'sci-name' }, s.n), el('div', { cls: 'sci-desc' }, s.d), el('div', { cls: 'sci-lv' }, `Ур: ${lvl}/${s.ml} (${(s.e * lvl * 100).toFixed(1)}%)`), el('div', { cls: 'sci-cst' }, fmt(cost) + ' 🔬'), el('button', { cls: 'btn science sm sci-btn', onClick: () => G.buySci(s.id), disabled: !canBuy || lvl >= s.ml }, lvl >= s.ml ? 'МАКС' : 'Купить') ]); r.appendChild(card); }); }
+function renderSciProg() { const r = $('gSciProg'); if (!r) return; r.innerHTML = ''; const cards = [ { label: 'Всего науки', val: fmt(S.tSci), icon: '🔬' }, { label: 'Наука/с', val: fmt(D.facts.reduce((s, f) => s + (S.fc[f.id] || 0) * f.sci / 10, 0)), icon: '⚡' }, { label: 'Престижи', val: fmt(S.pr), icon: '☄️' }, { label: 'Время', val: fmtT((Date.now() - S.stt.start) / 1000), icon: '⏱️' } ]; cards.forEach(c => { const div = el('div', { cls: 'item-card', style: 'text-align:center' }, [ el('div', { cls: 'item-icon' }, c.icon), el('div', { cls: 'item-name' }, c.label), el('div', { cls: 'item-foot', style: 'justify-content:center' }, [ el('div', { cls: 'item-cost' }, [ el('span', { cls: 'amt mono' }, c.val) ]) ]) ]); r.appendChild(div); }); }
+function renderPrestige() { const gain = C.prGain(), b = C.prBon(); const bFeed = $('bFeed'); if (bFeed) bFeed.textContent = '×' + b.fe.toFixed(2); const bFat = $('bFat'); if (bFat) bFat.textContent = '×' + b.fat.toFixed(2); const bDna = $('bDna'); if (bDna) bDna.textContent = '+' + (b.dna * 100).toFixed(0) + '%'; const bClick = $('bClick'); if (bClick) bClick.textContent = '×' + b.cl.toFixed(2); const mPrGain = $('mPrGain'); if (mPrGain) mPrGain.textContent = fmt(gain); const prGainBtn = $('prGain'); if (prGainBtn) prGainBtn.textContent = '+' + fmt(gain) + ' 🧬'; const ttTotFat = $('ttTotFat'); if (ttTotFat) ttTotFat.textContent = fmt(S.tFat); const ttPrMul = $('ttPrMul'); if (ttPrMul) ttPrMul.textContent = '×' + (1 + S.ab.dna + (S.br.gp ? 1 : 0) + (S.su.a6 || 0) * .5).toFixed(2); const btn = $('prBtn'); if (btn) { if (gain > 0) { btn.disabled = false; const prTxt = $('prTxt'); if (prTxt) prTxt.textContent = 'Выполнить Апокалипсис'; } else { btn.disabled = true; const prTxt = $('prTxt'); if (prTxt) prTxt.textContent = 'Нужно 1 млрд жира за всё время'; } } }
+function renderAch() { const r = $('gAch'); if (!r) return; r.innerHTML = ''; const cats = { gen: 'Общие', farm: 'Ферма', pr: 'Престиж', mkt: 'Рынок', sci: 'Наука' }; Object.entries(cats).forEach(([cat, label]) => { const catAch = D.ach.filter(a => a.cat === cat); if (catAch.length === 0) return; const header = el('div', { style: 'grid-column:1/-1;font-weight:700;color:var(--gold);padding:8px 0 4px;border-top:1px solid var(--border);margin-top:8px' }, label); r.appendChild(header); catAch.forEach(a => { const unl = S.ach[a.id]; let prog = 0; if (a.id === 'c1') prog = Math.min(100, S.cl / 1 * 100); else if (a.id === 'c2') prog = Math.min(100, S.cl / 100 * 100); else if (a.id === 'c3') prog = Math.min(100, S.cl / 1e4 * 100); else if (a.id === 'f1') prog = Math.min(100, S.fat / 1e6 * 100); else if (a.id === 'f2') prog = Math.min(100, S.fat / 1e9 * 100); else if (a.id === 'm1') prog = Math.min(100, S.mktP / 1e6 * 100); else if (a.id === 'sc1') prog = Math.min(100, S.sci / 1e3 * 100); else if (a.id === 'g1') prog = Object.values(S.ge).some(v => v >= 10) ? 100 : Math.max(...Object.values(S.ge)) / 10 * 100; else if (a.id === 's1') prog = Object.values(S.st).some(v => v > 0) ? 100 : 0; else if (a.id === 's2') prog = Math.min(100, Object.values(S.st).reduce((a, b) => a + b, 0) / 100 * 100); else if (a.id === 'p1') prog = S.pr >= 1 ? 100 : 0; else if (a.id === 'p2') prog = Math.min(100, S.pr / 10 * 100); else prog = unl ? 100 : 0; const div = el('div', { cls: `ach${unl ? ' unl' : ''}` }, [ el('div', { cls: 'ach-ic' }, unl ? '🏆' : '🔒'), el('div', { cls: 'ach-tt' }, a.n), el('div', { cls: 'ach-ds' }, a.d), el('div', { cls: 'ach-rw' }, a.r), el('div', { cls: 'ach-pr' }, [ el('div', { cls: 'ach-prb', style: `width:${prog}%` }) ]) ]); r.appendChild(div); }); }); }
+function renderStatsTab() { const r = $('gStats'); if (!r) return; r.innerHTML = ''; const stats = [ { label: 'Кликов', val: fmt(S.cl), icon: '👆' }, { label: 'Корма сыт', val: fmt(S.stt.tFeed), icon: '🌽' }, { label: 'Жира зар.', val: fmt(S.tFat), icon: '🥩' }, { label: 'Престижи', val: fmt(S.pr), icon: '☄️' }, { label: 'ДНК', val: fmt(S.dna), icon: '🧬' }, { label: 'Науки', val: fmt(S.tSci), icon: '🔬' }, { label: 'Стойл', val: fmt(S.stt.tSt), icon: '🏠' }, { label: 'Генов', val: fmt(S.stt.tGe), icon: '🧬' }, { label: 'Заводов', val: fmt(S.stt.tFc), icon: '🏭' }, { label: 'Апгрейдов', val: fmt(S.stt.tSc), icon: '🔬' }, { label: 'Время', val: fmtT((Date.now() - S.stt.start) / 1000), icon: '⏱️' }, { label: 'Рынок', val: fmt(S.mktP), icon: '📈' } ]; stats.forEach(s => { const div = el('div', { cls: 'item-card', style: 'text-align:center' }, [ el('div', { cls: 'item-icon' }, s.icon), el('div', { cls: 'item-name' }, s.label), el('div', { cls: 'item-foot', style: 'justify-content:center' }, [ el('div', { cls: 'item-cost' }, [ el('span', { cls: 'amt mono' }, s.val) ]) ]) ]); r.appendChild(div); }); }
+function renderSet() { const r = $('gSet'); if (!r) return; r.innerHTML = `<div class="set-row"><div class="set-lbl"><div class="set-tt">Вибрация</div><div class="set-desc">Тактильная связь</div></div><label class="tgl"><input type="checkbox" id="setVib" ${S.set.vib ? 'checked' : ''}><span class="tgl-sld"></span></label></div><div class="set-row"><div class="set-lbl"><div class="set-tt">Режим экономии</div><div class="set-desc">Откл. анимации</div></div><label class="tgl"><input type="checkbox" id="setRed" ${S.set.red ? 'checked' : ''}><span class="tgl-sld"></span></label></div><div class="set-row"><div class="set-lbl"><div class="set-tt">Высокий контраст</div><div class="set-desc">Для слабовидящих</div></div><label class="tgl"><input type="checkbox" id="setHc" ${S.set.hc ? 'checked' : ''}><span class="tgl-sld"></span></label></div><div class="set-row"><div class="set-lbl"><div class="set-tt">Автосохранение</div><div class="set-desc">Каждые 10 сек</div></div><label class="tgl"><input type="checkbox" id="setAuto" ${S.set.autoS ? 'checked' : ''}><span class="tgl-sld"></span></label></div><div class="set-row"><div class="set-lbl"><div class="set-tt">Офлайн-уведомление</div><div class="set-desc">Модалка при входе</div></div><label class="tgl"><input type="checkbox" id="setOffN" ${S.set.offN ? 'checked' : ''}><span class="tgl-sld"></span></label></div>`; $('setVib')?.addEventListener('change', e => { S.set.vib = e.target.checked; save(); }); $('setRed')?.addEventListener('change', e => { S.set.red = e.target.checked; if (e.target.checked) document.body.classList.add('reduced-motion'); else document.body.classList.remove('reduced-motion'); save(); }); $('setHc')?.addEventListener('change', e => { S.set.hc = e.target.checked; if (e.target.checked) document.body.classList.add('high-contrast'); else document.body.classList.remove('high-contrast'); save(); }); $('setAuto')?.addEventListener('change', e => { S.set.autoS = e.target.checked; save(); }); $('setOffN')?.addEventListener('change', e => { S.set.offN = e.target.checked; save(); }); }
+
+// ===== 14. GAME LOOP (setInterval) =====
+let lastLoop = 0;
+function gameLoop() {
+  const now = Date.now();
+  const dt = (now - lastLoop) / 1000; // seconds
+  lastLoop = now;
+
+  // Stalls
+  D.stalls.forEach(s => { const c = S.st[s.id]; if (c > 0) { const fn = C.stallFeed(s) * c, fp = C.stallFat(s) * c, q = Math.random() < C.quCh() ? 2 : 1; if (S.feed >= fn) { S.feed -= fn; S.fat += fp * q; S.tFat += fp * q; } else { const r = S.feed / fn || 0; S.feed = 0; const sv = 1 + S.ab.surv + (S.br.mg ? .5 : 0); S.fat += fp * r * q * .5 * sv; S.tFat += fp * r * q * .5 * sv; } } });
+
+  // Factories
+  D.facts.forEach(f => { const c = S.fc[f.id]; if (c > 0) { const rt = f.r * c, inp = S.fs[f.in] || 0; if (inp >= rt) { S.fs[f.in] -= rt; S.fs[f.out] = (S.fs[f.out] || 0) + rt; } else { S.fs[f.out] = (S.fs[f.out] || 0) + inp; S.fs[f.in] = 0; } } });
+
+  // Science from facts
+  D.facts.forEach(f => { if (S.fc[f.id] > 0) { S.sci += f.sci * S.fc[f.id] / 10; S.tSci += f.sci * S.fc[f.id] / 10; } });
+
+  // Market prices
+  D.market.forEach(m => { let p = S.mp[m.id] || m.bp; p *= 1 + (Math.random() - .5) * 2 * m.v; p = Math.max(m.bp * .1, Math.min(m.bp * 10, p)); S.mp[m.id] = p; });
+
+  // Auto-buy
+  if (S.auto) { D.stalls.forEach(s => { if (S.st[s.id] < 1e3) { const c = C.stallCost(s, S.st[s.id]); if (can('fat', c)) G.buyStall(s.id); } }); D.genes.forEach(g => { if (S.ge[g.id] < g.ml) { const c = C.geneCost(g); if (can('dna', c)) G.buyGene(g.id); } }); D.sciUps.forEach(s => { if (S.su[s.id] < s.ml) { const c = C.sciCost(s); if (can('sci', c)) G.buySci(s.id); } }); }
+
+  // Auto-click from science
+  if (S.su.a1 > 0) { for (let i = 0; i < S.su.a1 * .1; i++) G.clickPig(); }
+
+  // Achievements
+  D.ach.forEach(a => { if (!S.ach[a.id] && a.c(S)) { S.ach[a.id] = true; applyAB(); toast(`🏆 ${a.n}: ${a.r}`, 'ok'); part(innerWidth / 2, innerHeight / 2, '⭐', '#ffb300'); HN('success'); } });
+
+  mark('stats');
+  renderAll();
+}
+
+// ===== 15. PIG INTERACTION =====
+let mX = 0, mY = 0;
+document.addEventListener('mousemove', e => { mX = e.clientX; mY = e.clientY; updEyes(); }, { passive: true });
+document.addEventListener('touchmove', e => { if (e.touches[0]) { mX = e.touches[0].clientX; mY = e.touches[0].clientY; updEyes(); } }, { passive: true });
+function updEyes() { const b = $('pigBtn'); if (!b) return; const r = b.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; const dx = mX - cx, dy = mY - cy; const d = Math.hypot(dx, dy); const mx = 2; const a = Math.atan2(dy, dx); const ox = Math.cos(a) * Math.min(d / 20, mx), oy = Math.sin(a) * Math.min(d / 20, mx); const elL = $('pigEyeL'), elR = $('pigEyeR'); if (elL) elL.style.transform = `translate(${ox}px,${oy}px)`; if (elR) elR.style.transform = `translate(${ox}px,${oy}px)`; }
+setInterval(() => { if (Math.random() < .03) blink(); }, 100);
+function blink() { $$('#pigEyelids path').forEach(l => l.style.transform = 'scale(1,1)'); setTimeout(() => $$('#pigEyelids path').forEach(l => l.style.transform = 'scale(1,0)'), 120); }
+
+// ===== 16. INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Bind Events
+  const pigBtn = $('pigBtn');
+  if (pigBtn) { pigBtn.addEventListener('click', G.clickPig); pigBtn.addEventListener('touchstart', e => G.clickPig(e.touches[0]), { passive: true }); }
 
   // Tabs
-  function sw(p){$$('.tab-panel').forEach(x=>{x.classList.remove('active');x.style.display='none';});const t=$(`.tab-panel#p-${p}`);if(t){t.style.display='block';t.offsetHeight;t.classList.add('active');t.scrollTop=0;}$$('.tab-btn').forEach(b=>{const a=b.dataset.p===p;b.classList.toggle('active',a);b.setAttribute('aria-selected',a);});H('light');}
-  $$('.tab-btn').forEach(b=>{b.addEventListener('click',e=>{e.preventDefault();sw(b.dataset.p);});b.addEventListener('touchstart',()=>b.style.transform='scale(.95)',{passive:true});b.addEventListener('touchend',()=>b.style.transform='');});
+  function sw(p) { $$('.tab-panel').forEach(x => { x.classList.remove('active'); x.style.display = 'none'; }); const t = $(`p-${p}`); if (t) { t.style.display = 'block'; t.offsetHeight; t.classList.add('active'); t.scrollTop = 0; } $$('.tab-btn').forEach(b => { const a = b.dataset.p === p; b.classList.toggle('active', a); b.setAttribute('aria-selected', a); }); H('light'); }
+  $$('.tab-btn').forEach(b => { b.addEventListener('click', e => { e.preventDefault(); sw(b.dataset.p); }); b.addEventListener('touchstart', () => b.style.transform = 'scale(.95)', { passive: true }); b.addEventListener('touchend', () => b.style.transform = ''); });
 
   // Buttons
-  $('#autoBtn').addEventListener('click',G.toggleAuto);
-  $('#mPrConfirm').addEventListener('click',G.prestige);
-  $('#mPrCancel,#mPrClose').forEach(x=>x?.addEventListener('click',()=>closeM('mPrestige')));
-  $('#mOffClose').addEventListener('click',closeOff);
-  $('#expBtn').addEventListener('click',G.export);
-  $('#impBtn').addEventListener('click',G.import);
-  $('#rstBtn').addEventListener('click',G.hardR);
+  $('autoBtn')?.addEventListener('click', G.toggleAuto);
+  $('mPrConfirm')?.addEventListener('click', G.prestige);
+  $('mPrCancel')?.addEventListener('click', () => closeM('mPrestige'));
+  $('mPrClose')?.addEventListener('click', () => closeM('mPrestige'));
+  $('mOffClose')?.addEventListener('click', closeOff);
+  $('expBtn')?.addEventListener('click', G.export);
+  $('impBtn')?.addEventListener('click', G.import);
+  $('rstBtn')?.addEventListener('click', G.hardR);
 
   // Keyboard
-  document.addEventListener('keydown',e=>{
-    if(['INPUT','SELECT'].includes(e.target.tagName))return;
-    const k=['piglet','sow','boar','ind','bio','qu'];const n=parseInt(e.key);
-    if(n>=1&&n<=6&&!e.ctrlKey&&!e.altKey)G.buyStall(k[n-1],e.shiftKey);
-    if(e.code==='Space'){e.preventDefault();G.clickPig({clientX:innerWidth/2,clientY:100});}
-    if(e.shiftKey&&e.code==='Space'){e.preventDefault();for(let i=0;i<100;i++)G.clickPig();}
-    const tabs={g:'genes',f:'factories',s:'science',m:'market',p:'prestige',a:'settings'};if(tabs[e.key.toLowerCase()])sw(tabs[e.key.toLowerCase()]);
-    if(e.key.toLowerCase()==='a')G.toggleAuto();
-    if(e.ctrlKey&&e.key==='s'){e.preventDefault();save();toast('Сохранено','ok');}
-    if(e.ctrlKey&&e.key==='d'){if(confirm('Сброс?'))G.hardR();}
+  document.addEventListener('keydown', e => {
+    if (['INPUT', 'SELECT'].includes(e.target.tagName)) return;
+    const k = ['piglet', 'sow', 'boar', 'ind', 'bio', 'qu'];
+    const n = parseInt(e.key);
+    if (n >= 1 && n <= 6 && !e.ctrlKey && !e.altKey) G.buyStall(k[n - 1], e.shiftKey);
+    if (e.code === 'Space') { e.preventDefault(); G.clickPig({ clientX: innerWidth / 2, clientY: 100 }); }
+    if (e.shiftKey && e.code === 'Space') { e.preventDefault(); for (let i = 0; i < 100; i++) G.clickPig(); }
+    const tabs = { g: 'genes', f: 'factories', s: 'science', m: 'market', p: 'prestige', a: 'settings' };
+    if (tabs[e.key.toLowerCase()]) sw(tabs[e.key.toLowerCase()]);
+    if (e.key.toLowerCase() === 'a') G.toggleAuto();
+    if (e.ctrlKey && e.key === 's') { e.preventDefault(); save(); toast('Сохранено', 'ok'); }
+    if (e.ctrlKey && e.key === 'd') { if (confirm('Сбросить ВСЁ?')) G.hardR(); }
   });
 
-  // Settings toggles
-  $$('#gSet input[type=checkbox]').forEach(cb=>cb.addEventListener('change',e=>{S.set[cb.id.replace('set','').toLowerCase()]=e.target.checked;save();renderSet();}));
-
   // Offline modal
-  if(S.offProg){$('#oTime').textContent=fmtT(S.offProg.t/1000);$('#oFat').textContent=fmt(S.offProg.fat);$('#oFeed').textContent=fmt(S.offProg.feed);$('#oSci').textContent=fmt(S.offProg.sci);openM('mOffline');}
+  if (S.offProg) { $('oTime').textContent = fmtT(S.offProg.t / 1000); $('oFat').textContent = fmt(S.offProg.fat); $('oFeed').textContent = fmt(S.offProg.feed); $('oSci').textContent = fmt(S.offProg.sci); openM('mOffline'); }
 
-  // Start Loop
-  requestAnimationFrame(loop);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+  // Load Game Data (Async)
+  load();
+
+  // Start Loops
+  setInterval(() => { if (S.set.autoS) save(); }, 10000);
+  setInterval(gameLoop, 100); // 10 TPS
+  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 });
 
-/* ===== MISSING RENDER STUBS (Fully implemented in final file) ===== */
-// renderGenes, renderBreed, renderFacts, renderBios, renderStore, renderMarket, renderPort, renderSci, renderSciProg, renderPrestige, renderAch, renderStatsTab, renderSet
-// All follow the `el()` pattern with targeted updates. See full file for complete implementations.
+// Global Error Handler
+window.addEventListener('error', e => { console.error('Global Error:', e.message, e.filename, e.lineno); toast('Ошибка: ' + e.message, 'err'); });
+window.addEventListener('unhandledrejection', e => { console.error('Unhandled Promise:', e.reason); toast('Ошибка промиса: ' + e.reason, 'err'); });
 </script>
 </body>
 </html>
